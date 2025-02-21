@@ -25,6 +25,7 @@ The purpose of this application is to create an interactive platform where users
 ---
 ### Estimations
 ---
+**NOTE**: The data estimations provided below are assumptions and may vary in a real-world scenario.
 - **Database Write Load**: 5,000 QPS (queries per second)
 - **Database Read Load**: 100,000 QPS (assuming 20x read requests per write)
 - **Average video size**: 300MB - 500MB (1080p, 10-15 minutes)
