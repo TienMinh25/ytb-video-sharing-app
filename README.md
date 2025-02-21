@@ -16,13 +16,15 @@ The purpose of this application is to create an interactive platform where users
 ## System Design
 
 ### Assumptions
+---
 - **Total registered users**: 10,000
 - **Daily Active Users (DAU)**: 5,000
 - **Concurrent users**: 1,000
 - **Videos shared per day**: 5,000
 - **Each user shares at least 1 video per day**
-
+---
 ### Estimations
+---
 - **Database Write Load**: 5,000 QPS (queries per second)
 - **Database Read Load**: 100,000 QPS (assuming 20x read requests per write)
 - **Average video size**: 300MB - 500MB (1080p, 10-15 minutes)
@@ -32,8 +34,9 @@ The purpose of this application is to create an interactive platform where users
 - **Metadata Storage**:
   - **Video metadata**: ~49MB/day → ~17.5GB/year
   - **User metadata**: ~9.7MB for 10K users
-
+---
 ### High-Level Architecture
+---
 ```
                             |-> save expire key in redis (to invalidate refresh token)
                             |
@@ -52,10 +55,11 @@ FE -> Load Balancer ----> BE 1  -------   <share new video, push event to Kafka>
           <Background job consumes messages from Kafka, checking online users via WebSockets>
 ```
 
-## API Design
-
-### Authentication
-#### Login
+---
+### API Design
+---
+#### Authentication
+##### Login
 - **Endpoint**: `POST /api/v1/login`
 - **Payload**:
   ```json
@@ -75,14 +79,14 @@ FE -> Load Balancer ----> BE 1  -------   <share new video, push event to Kafka>
     ```
   - `400 Bad Request` (invalid credentials)
 
-#### Logout
+##### Logout
 - **Endpoint**: `POST /api/v1/logout`
 - **Request Headers**:
   - `Authorization`: Bearer Token
 - **Response**:
   - `200 OK`
 
-#### Register
+##### Register
 - **Endpoint**: `POST /api/v1/register`
 - **Payload**:
   ```json
@@ -97,9 +101,9 @@ FE -> Load Balancer ----> BE 1  -------   <share new video, push event to Kafka>
 - **Responses**:
   - `200 OK`
   - `409 Conflict` (email already exists)
-
-### Video Management
-#### List Videos
+---
+#### Video Management
+##### List Videos
 - **Endpoint**: `GET /api/v1/videos`
 - **Headers**: `Authorization: Bearer Token`
 - **Response**:
@@ -122,7 +126,7 @@ FE -> Load Balancer ----> BE 1  -------   <share new video, push event to Kafka>
   ]
   ```
 
-#### Share a Video
+##### Share a Video
 - **Endpoint**: `POST /api/v1/videos`
 - **Headers**: `Authorization: Bearer Token`
 - **Payload**:
@@ -136,10 +140,10 @@ FE -> Load Balancer ----> BE 1  -------   <share new video, push event to Kafka>
   ```
 - **Response**:
   - `200 OK`
-
-## Database Schema
-
-### Account Table
+---
+### Database Schema
+---
+#### Account Table
 | Column     | Type   |
 |------------|--------|
 | id         | int    |
@@ -147,13 +151,13 @@ FE -> Load Balancer ----> BE 1  -------   <share new video, push event to Kafka>
 | fullname   | string |
 | avatarURL  | string |
 
-### Account_Password Table
+#### Account_Password Table
 | Column     | Type    |
 |------------|--------|
 | id         | int    |
 | password   | string |
 
-### Video Table
+#### Video Table
 | Column      | Type   |
 |------------|--------|
 | id         | int    |
@@ -164,14 +168,16 @@ FE -> Load Balancer ----> BE 1  -------   <share new video, push event to Kafka>
 | video_url  | string |
 | account_id | int    |
 
+---
 ### Kafka Message Schema
+---
 ```json
 {
   "video_title": "string",
-  "username": "string" // or using fullname instead
+  "fullname": "string"
 }
 ```
-
+---
 ## Installation & Configuration (update later)
 
 1. **Clone the repository:**
