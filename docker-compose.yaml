@@ -1,0 +1,20 @@
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    env_file:
+      - ytb-video-sharing-app-be/configs/config.dev.env
+    ports:
+      - "3307:3306"
+    restart: unless-stopped
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - ytb
+
+networks:
+  ytb:
+    driver: bridge
+
+volumes:
+  mysql_data:

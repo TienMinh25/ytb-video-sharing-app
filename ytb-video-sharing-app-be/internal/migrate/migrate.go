@@ -10,7 +10,7 @@ import (
 )
 
 func Migrate(dir string) error {
-	db, err := migrate.New(dir, os.Getenv("MYSQL_DSN"))
+	db, err := migrate.New(dir, "mysql://" + os.Getenv("MYSQL_DSN"))
 
 	if err != nil {
 		return errors.Wrap(err, "migrate.New")
