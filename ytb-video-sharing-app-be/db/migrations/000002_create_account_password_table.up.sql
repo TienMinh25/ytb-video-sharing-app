@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS account_password (
+  id INT PRIMARY KEY,
+  password VARCHAR(255) NOT NULL,
+  FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
+);
