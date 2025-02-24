@@ -8,32 +8,26 @@ import (
 	"testing"
 	"time"
 	"ytb-video-sharing-app-be/internal/entities"
-	"ytb-video-sharing-app-be/mocks"
 )
 
-type testConfig struct {
-	ctr  *gomock.Controller
-	db   *mocks.MockDatabase
-	tx   *mocks.MockTx
-	row  *mocks.MockRow
+type refreshTokenConfig struct {
+	testConfig
 	repo RefreshTokenRepository
 }
 
-func __SetupConfig(t *testing.T) *testConfig {
-	ctr := gomock.NewController(t)
-	db := mocks.NewMockDatabase(ctr)
-	tx := mocks.NewMockTx(ctr)
-	row := mocks.NewMockRow(ctr)
+func SetupRefreshTokenConfig(t *testing.T) *refreshTokenConfig {
+	testConf := SetupTest(t)
 
-	repo := NewRefreshTokenRepository(db)
-
-	return &testConfig{ctr: ctr, db: db, tx: tx, repo: repo, row: row}
+	return &refreshTokenConfig{
+		testConfig: *testConf,
+		repo:       NewRefreshTokenRepository(testConf.db),
+	}
 }
 
 func TestSave(t *testing.T) {
 	t.Run("Should save a new token", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-		defer cfg.ctr.Finish()
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 
 		ctx := context.Background()
 		refreshToken := &entities.RefreshToken{
@@ -52,8 +46,8 @@ func TestSave(t *testing.T) {
 	})
 
 	t.Run("Should throw an error if pass wrong params", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-		defer cfg.ctr.Finish()
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 
 		ctx := context.Background()
 		err := errors.New("wrong params")
@@ -70,8 +64,8 @@ func TestSave(t *testing.T) {
 
 func TestGetRefreshToken(t *testing.T) {
 	t.Run("Shoud return token if found", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-		defer cfg.ctr.Finish()
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 
 		ctx := context.Background()
 		expectedToken := &entities.RefreshToken{
@@ -106,9 +100,8 @@ func TestGetRefreshToken(t *testing.T) {
 	})
 
 	t.Run("Should return nil if account_id or token is incorrect or both account_id and refresh_token are incorrect", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-
-		defer cfg.ctr.Finish()
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 		ctx := context.Background()
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(cfg.row)
@@ -123,8 +116,8 @@ func TestGetRefreshToken(t *testing.T) {
 	})
 
 	t.Run("Should return nil if Scan encounters an error", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-		defer cfg.ctr.Finish()
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 
 		ctx := context.Background()
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any(), gomock.Any(), gomock.Any()).Return(cfg.row)
@@ -137,8 +130,8 @@ func TestGetRefreshToken(t *testing.T) {
 
 func TestDeleteRefreshToken(t *testing.T) {
 	t.Run("Should delete an existing token", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-		defer cfg.ctr.Finish()
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 
 		ctx := context.Background()
 		cfg.db.EXPECT().
@@ -150,23 +143,24 @@ func TestDeleteRefreshToken(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("Should not return error if no rows are affected (account_id or token incorrect)", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-		defer cfg.ctr.Finish()
+	t.Run("Should return error if no rows are affected (account_id or token incorrect)", func(t *testing.T) {
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 
 		ctx := context.Background()
+		expectedErr := errors.New("sql: no rows affected")
 		cfg.db.EXPECT().
 			Exec(ctx, gomock.Any(), gomock.Any(), gomock.Any()).
-			Return(nil)
+			Return(expectedErr)
 
 		err := cfg.repo.DeleteRefreshToken(ctx, 1, "wrong_token")
-
-		assert.NoError(t, err)
+		assert.Error(t, err)
+		assert.Equal(t, expectedErr, err)
 	})
 
 	t.Run("Should return error if database execution fails", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-		defer cfg.ctr.Finish()
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 
 		expectedErr := errors.New("database error")
 		ctx := context.Background()
@@ -183,8 +177,8 @@ func TestDeleteRefreshToken(t *testing.T) {
 
 func TestUpdateRefreshToken(t *testing.T) {
 	t.Run("Should update an existing token", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-		defer cfg.ctr.Finish()
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 		ctx := context.Background()
 
 		id := int64(1)
@@ -200,27 +194,28 @@ func TestUpdateRefreshToken(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("Should not return error if no rows are affected (account_id or token incorrect)", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-		defer cfg.ctr.Finish()
+	t.Run("Should return error if no rows are affected (account_id or token incorrect)", func(t *testing.T) {
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 		ctx := context.Background()
 
 		id := int64(999)
 		newToken := "new_token"
 		expiresAt := time.Now().Add(time.Hour)
+		expectedErr := errors.New("no rows affected")
 
 		cfg.tx.EXPECT().
 			Exec(ctx, gomock.Any(), expiresAt, newToken, id).
-			Return(nil)
+			Return(expectedErr)
 
 		err := cfg.repo.Update(ctx, cfg.tx, id, newToken, expiresAt)
-
-		assert.NoError(t, err)
+		assert.Error(t, err)
+		assert.Equal(t, expectedErr, err)
 	})
 
 	t.Run("Should return error if database execution fails", func(t *testing.T) {
-		cfg := __SetupConfig(t)
-		defer cfg.ctr.Finish()
+		cfg := SetupRefreshTokenConfig(t)
+		defer cfg.TearDownTest()
 		ctx := context.Background()
 
 		id := int64(1)
