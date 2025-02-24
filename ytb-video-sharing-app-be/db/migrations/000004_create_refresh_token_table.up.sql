@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS refresh_token (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    account_id    INT NOT NULL,
+    token         VARCHAR(1024) NOT NULL,
+    expires_at    DATETIME NOT NULL,
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+);

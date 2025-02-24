@@ -1,0 +1,258 @@
+basePath: /api/v1
+definitions:
+  dto.AccountResponse:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      fullname:
+        type: string
+      id:
+        type: integer
+    type: object
+  dto.CreateAccountRequest:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      fullname:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - fullname
+    - password
+    type: object
+  dto.CreateAccountResponse:
+    properties:
+      access_token:
+        type: string
+      avatar_url:
+        type: string
+      email:
+        type: string
+      fullname:
+        type: string
+      id:
+        type: integer
+      refresh_token:
+        type: string
+    type: object
+  dto.CreateAccountResponseDocs:
+    properties:
+      data:
+        $ref: '#/definitions/dto.CreateAccountResponse'
+      metadata:
+        $ref: '#/definitions/dto.Metadata'
+    type: object
+  dto.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      info:
+        $ref: '#/definitions/dto.AccountResponse'
+      refresh_token:
+        type: string
+    type: object
+  dto.LoginResponseDocs:
+    properties:
+      data:
+        $ref: '#/definitions/dto.LoginResponse'
+      metadata:
+        $ref: '#/definitions/dto.Metadata'
+    type: object
+  dto.LogoutResponse:
+    type: object
+  dto.LogoutResponseDocs:
+    properties:
+      data:
+        $ref: '#/definitions/dto.LogoutResponse'
+      metadata:
+        $ref: '#/definitions/dto.Metadata'
+    type: object
+  dto.Metadata:
+    properties:
+      code:
+        type: integer
+    type: object
+  dto.RefreshTokenResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  dto.RefreshTokenResponseDocs:
+    properties:
+      data:
+        $ref: '#/definitions/dto.RefreshTokenResponse'
+      metadata:
+        $ref: '#/definitions/dto.Metadata'
+    type: object
+  dto.ResponseError:
+    properties:
+      error: {}
+      metadata:
+        $ref: '#/definitions/dto.Metadata'
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: API cho ứng dụng chia sẻ video YouTube
+  title: YouTube Video Sharing API
+  version: "1.0"
+paths:
+  /accounts/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return access token & refresh token
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LoginResponseDocs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Login account
+      tags:
+      - accounts
+  /accounts/logout/{accountID}:
+    post:
+      consumes:
+      - application/json
+      description: Logout user by deleting refresh token
+      parameters:
+      - description: Account ID
+        in: path
+        name: accountID
+        required: true
+        type: integer
+      - description: Refresh Token
+        in: header
+        name: X-Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LogoutResponseDocs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Logout account
+      tags:
+      - accounts
+  /accounts/refresh-token/{accountID}:
+    post:
+      consumes:
+      - application/json
+      description: Refresh access token using a valid refresh token
+      parameters:
+      - description: Account ID
+        in: path
+        name: accountID
+        required: true
+        type: integer
+      - description: Refresh Token
+        in: header
+        name: X-Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RefreshTokenResponseDocs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Refresh Token
+      tags:
+      - accounts
+  /accounts/register:
+    post:
+      consumes:
+      - application/json
+      description: create new account based info request
+      parameters:
+      - description: Thông tin đăng ký
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CreateAccountResponseDocs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Register new account
+      tags:
+      - accounts
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
