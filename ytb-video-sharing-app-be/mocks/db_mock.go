@@ -11,6 +11,7 @@ package mocks
 
 import (
 	context "context"
+	sql "database/sql"
 	reflect "reflect"
 	pkg "ytb-video-sharing-app-be/pkg"
 
@@ -87,6 +88,26 @@ func (mr *MockDatabaseMockRecorder) Exec(ctx, sql any, args ...any) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, sql}, args...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exec", reflect.TypeOf((*MockDatabase)(nil).Exec), varargs...)
+}
+
+// ExecWithResult mocks base method.
+func (m *MockDatabase) ExecWithResult(ctx context.Context, sqlStr string, args ...any) (sql.Result, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, sqlStr}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ExecWithResult", varargs...)
+	ret0, _ := ret[0].(sql.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExecWithResult indicates an expected call of ExecWithResult.
+func (mr *MockDatabaseMockRecorder) ExecWithResult(ctx, sqlStr any, args ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, sqlStr}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecWithResult", reflect.TypeOf((*MockDatabase)(nil).ExecWithResult), varargs...)
 }
 
 // Query mocks base method.

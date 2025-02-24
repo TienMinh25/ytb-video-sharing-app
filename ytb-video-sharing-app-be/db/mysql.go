@@ -66,6 +66,17 @@ func (m *mysql) Exec(ctx context.Context, sql string, args ...any) error {
 	return nil
 }
 
+// ExecWithResult implements pkg.Database.
+func (m *mysql) ExecWithResult(ctx context.Context, sqlStr string, args ...any) (sql.Result, error) {
+	res, err := m.client.Exec(sqlStr, args...)
+
+	if err != nil {
+		return nil, parseError(err)
+	}
+
+	return res, nil
+}
+
 func parseError(err error) error {
 	var mysqlErr *mysqlDriver.MySQLError
 

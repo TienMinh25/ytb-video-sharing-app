@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Database interface {
@@ -19,6 +20,9 @@ type Database interface {
 
 	// Executes a SQL query expected to return multiple rows, returning a Rows object or an error
 	Query(ctx context.Context, sql string, args ...any) (Rows, error)
+
+	// Executes a SQL query (e.g, INSERT, DELETE, UPDATE) with optional args, returning an errors or sql result
+	ExecWithResult(ctx context.Context, sqlStr string, args ...any) (sql.Result, error)
 }
 
 type Tx interface {

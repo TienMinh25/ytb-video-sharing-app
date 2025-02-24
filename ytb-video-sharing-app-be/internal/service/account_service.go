@@ -188,10 +188,6 @@ func (a *accountService) RefreshToken(ctx context.Context, accountID int64, refr
 		return nil, &dto.ErrorResponse{Code: http.StatusBadRequest, Message: "Refresh token is invalid"}
 	}
 
-	if oldRefreshToken.ExpiresAt.Before(time.Now()) {
-		return nil, &dto.ErrorResponse{Code: http.StatusBadRequest, Message: "Refresh token is expired"}
-	}
-
 	account := a.accountRepository.GetAccountByID(ctx, accountID)
 
 	if account == nil {

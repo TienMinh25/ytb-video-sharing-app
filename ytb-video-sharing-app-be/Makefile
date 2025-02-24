@@ -36,4 +36,9 @@ generate-mock:
 tests-run:
 	@go test -v -count=1 ./... 2>&1 | grep -v "no test files"
 
-tests-coverage:
+tests-cover:
+	@go test -coverprofile=internal/repository/test-cover.out -count=1 -v ./internal/repository/
+	@go tool cover -html=internal/repository/test-cover.out
+
+tests-clear:
+	@rm internal/repository/test-cover.out

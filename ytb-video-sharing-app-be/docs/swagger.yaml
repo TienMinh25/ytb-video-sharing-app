@@ -54,6 +54,15 @@ definitions:
       message:
         type: string
     type: object
+  dto.ListVideosResponseDocs:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.VideoResponse'
+        type: array
+      metadata:
+        $ref: '#/definitions/dto.MetadataWithPagination'
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -95,6 +104,28 @@ definitions:
       code:
         type: integer
     type: object
+  dto.MetadataWithPagination:
+    properties:
+      code:
+        type: integer
+      pagination:
+        $ref: '#/definitions/dto.Pagination'
+    type: object
+  dto.Pagination:
+    properties:
+      is_next:
+        type: boolean
+      is_previous:
+        type: boolean
+      limit:
+        type: integer
+      page:
+        type: integer
+      total_items:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
   dto.RefreshTokenResponse:
     properties:
       access_token:
@@ -114,6 +145,60 @@ definitions:
       error: {}
       metadata:
         $ref: '#/definitions/dto.Metadata'
+    type: object
+  dto.ShareVideoRequest:
+    properties:
+      description:
+        type: string
+      downvote:
+        type: integer
+      thumbnail:
+        type: string
+      upvote:
+        type: integer
+      video_url:
+        type: string
+    type: object
+  dto.ShareVideoResponse:
+    properties:
+      account_id:
+        type: integer
+      description:
+        type: string
+      downvote:
+        type: integer
+      id:
+        type: integer
+      thumbnail:
+        type: string
+      upvote:
+        type: integer
+      video_url:
+        type: string
+    type: object
+  dto.ShareVideoResponseDocs:
+    properties:
+      data:
+        $ref: '#/definitions/dto.ShareVideoResponse'
+      metadata:
+        $ref: '#/definitions/dto.Metadata'
+    type: object
+  dto.VideoResponse:
+    properties:
+      account_id:
+        type: integer
+      description:
+        type: string
+      downvote:
+        type: integer
+      id:
+        type: integer
+      thumbnail:
+        type: string
+      upvote:
+        type: integer
+      video_url:
+        type: string
     type: object
 host: localhost:3000
 info:
@@ -184,7 +269,7 @@ paths:
       summary: Logout account
       tags:
       - accounts
-  /accounts/refresh-token/{accountID}:
+  /accounts/refresh-token:
     post:
       consumes:
       - application/json
@@ -250,6 +335,71 @@ paths:
       summary: Register new account
       tags:
       - accounts
+  /videos:
+    get:
+      consumes:
+      - application/json
+      description: Get list videos
+      parameters:
+      - description: Limit number of records returned
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ListVideosResponseDocs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Get list videos
+      tags:
+      - videos
+    post:
+      consumes:
+      - application/json
+      description: Create new video and return itself.
+      parameters:
+      - description: Share video payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ShareVideoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ShareVideoResponseDocs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Share new video
+      tags:
+      - videos
 securityDefinitions:
   BearerAuth:
     in: header

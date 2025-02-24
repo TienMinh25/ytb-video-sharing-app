@@ -131,17 +131,20 @@ func (h *AccountHandler) Logout(ctx *gin.Context) {
 //	@Success		200	{object}	dto.RefreshTokenResponseDocs
 //	@Failure		400	{object}	dto.ErrorResponse
 //	@Failure		500	{object}	dto.ErrorResponse
-//	@Router			/accounts/refresh-token/{accountID} [post]
+//	@Router			/accounts/refresh-token [post]
 func (h *AccountHandler) RefreshToken(ctx *gin.Context) {
-	refreshToken := strings.Split(ctx.Request.Header["X-Authorization"][0], " ")[1]
-	accountID, err := strconv.Atoi(ctx.Param("accountID"))
+	refreshTokenReq, _ := ctx.Get("refresh_token")
+	refreshToken := refreshTokenReq.(string)
 
-	if err != nil {
+	accountIDReq, _ := ctx.Get("account_id")
+	accountID, ok := accountIDReq.(int64)
+
+	if !ok {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid account id")
 		return
 	}
 
-	res, errRe := h.accountService.RefreshToken(ctx, int64(accountID), refreshToken)
+	res, errRe := h.accountService.RefreshToken(ctx, accountID, refreshToken)
 
 	if errRe != nil {
 		utils.ErrorResponse(ctx, errRe.Code, errRe.Message)

@@ -19,16 +19,18 @@ func NewJWTAuthenticationMiddleware(keyManager *utils.KeyManager) *JwtAuthentica
 }
 
 func JWTAuthMiddleware(params *JwtAuthenticationMiddleware) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
+	return func(ctx *gin.Context) {
+		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, &dto.ErrorResponse{Message: "missing authorization header", Code: http.StatusUnauthorized})
+			utils.ErrorResponse(ctx, http.StatusUnauthorized, &dto.ErrorResponse{Message: "Missing authorization header", Code: http.StatusUnauthorized})
+			ctx.Abort()
 			return
 		}
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "invalid token format", Code: http.StatusUnauthorized})
+			utils.ErrorResponse(ctx, http.StatusUnauthorized, dto.ErrorResponse{Message: "Invalid token format", Code: http.StatusUnauthorized})
+			ctx.Abort()
 			return
 		}
 
@@ -36,13 +38,45 @@ func JWTAuthMiddleware(params *JwtAuthenticationMiddleware) gin.HandlerFunc {
 		claims, errResp := utils.ValidateToken(parts[1], params.KeyManager)
 
 		if errResp != nil {
-			c.AbortWithStatusJSON(errResp.Code, errResp)
+			utils.ErrorResponse(ctx, errResp.Code, dto.ErrorResponse{Message: errResp.Message, Code: errResp.Code})
+			ctx.Abort()
 			return
 		}
 
-		// Lưu thông tin user vào context
-		c.Set("claims", claims)
+		ctx.Set("claims", claims)
 
-		c.Next()
+		ctx.Next()
+	}
+}
+
+func JWTRefreshTokenMiddleware(params *JwtAuthenticationMiddleware) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		authHeader := ctx.GetHeader("X-Authorization")
+		if authHeader == "" {
+			utils.ErrorResponse(ctx, http.StatusUnauthorized, &dto.ErrorResponse{Message: "Missing X-Authorization header", Code: http.StatusUnauthorized})
+			ctx.Abort()
+			return
+		}
+
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			utils.ErrorResponse(ctx, http.StatusUnauthorized, dto.ErrorResponse{Message: "Invalid token format", Code: http.StatusUnauthorized})
+			ctx.Abort()
+			return
+		}
+
+		// Validate token
+		claims, errResp := utils.ValidateToken(parts[1], params.KeyManager)
+
+		if errResp != nil {
+			utils.ErrorResponse(ctx, errResp.Code, dto.ErrorResponse{Message: errResp.Message, Code: errResp.Code})
+			ctx.Abort()
+			return
+		}
+
+		ctx.Set("account_id", claims.AccountID)
+		ctx.Set("refresh_token", parts[1])
+
+		ctx.Next()
 	}
 }
