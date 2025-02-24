@@ -59,7 +59,7 @@ func TestGetAccountPasswordByID(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	t.Run("Should return error if scan fails", func(t *testing.T) {
+	t.Run("Should return nil if scan fails", func(t *testing.T) {
 		cfg := SetupAccountPasswordConfig(t)
 		defer cfg.TearDownTest()
 
