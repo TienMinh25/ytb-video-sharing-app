@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"ytb-video-sharing-app-be/internal/entities"
 	"ytb-video-sharing-app-be/pkg"
 )
@@ -35,8 +36,8 @@ func (v *videoRepository) CreateVideo(ctx context.Context, payload *entities.Vid
 
 	lastInsertId, err := rs.LastInsertId()
 
-	if err != nil {
-		return nil, err
+	if err != nil || lastInsertId == 0 {
+		return nil, errors.New("db execution failed")
 	}
 
 	return v.GetVideo(ctx, lastInsertId)
