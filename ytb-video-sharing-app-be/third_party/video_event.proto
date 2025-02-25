@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "ytb-video-sharing-app-be/third_party";
+
+message VideoMessageEvent {
+  int64 account_id = 1;
+  string title = 2;
+  string shared_by = 3;
+  string thumbnail = 4;
+}

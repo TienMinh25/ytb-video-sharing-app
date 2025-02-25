@@ -541,6 +541,13 @@ const docTemplate = `{
         },
         "dto.ShareVideoRequest": {
             "type": "object",
+            "required": [
+                "downvote",
+                "thumbnail",
+                "title",
+                "upvote",
+                "video_url"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
@@ -549,6 +556,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "thumbnail": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "upvote": {
@@ -575,6 +585,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "thumbnail": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "upvote": {
@@ -612,6 +625,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "thumbnail": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "upvote": {

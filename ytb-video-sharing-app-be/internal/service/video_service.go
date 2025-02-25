@@ -34,6 +34,7 @@ func (v videoServie) ShareVideoYTB(ctx context.Context, payload *entities.Video)
 
 	return &dto.ShareVideoResponse{
 		ID:          res.ID,
+		Title:       res.Title,
 		Description: res.Description,
 		UpVote:      res.UpVote,
 		DownVote:    res.DownVote,
@@ -53,6 +54,7 @@ func (v *videoServie) GetListVideos(ctx context.Context, limit int, page int) ([
 	for _, video := range videos {
 		videoResponses = append(videoResponses, &dto.VideoResponse{
 			ID:          video.ID,
+			Title:       video.Title,
 			Description: video.Description,
 			UpVote:      video.UpVote,
 			DownVote:    video.DownVote,

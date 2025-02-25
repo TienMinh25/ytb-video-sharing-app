@@ -25,10 +25,10 @@ func NewVideoRepository(db pkg.Database) VideoRepository {
 
 // CreateVideo implements VideoRepository.
 func (v *videoRepository) CreateVideo(ctx context.Context, payload *entities.Video) (*entities.Video, error) {
-	query := `INSERT INTO videos (description, upvote, downvote, thumbnail, video_url, account_id)
-			VALUES (?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO videos (title, description, upvote, downvote, thumbnail, video_url, account_id)
+			VALUES (?, ?, ?, ?, ?, ?, ?)`
 
-	rs, err := v.db.ExecWithResult(ctx, query, payload.Description, payload.UpVote, payload.DownVote, payload.Thumbnail, payload.VideoUrl, payload.AccountID)
+	rs, err := v.db.ExecWithResult(ctx, query, payload.Title, payload.Description, payload.UpVote, payload.DownVote, payload.Thumbnail, payload.VideoUrl, payload.AccountID)
 
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (v *videoRepository) GetVideo(ctx context.Context, videoID int64) (*entitie
 	video := &entities.Video{}
 
 	if err := v.db.QueryRow(ctx, query, videoID).
-		Scan(&video.ID, &video.Description, &video.UpVote, &video.DownVote, &video.Thumbnail, &video.VideoUrl, &video.AccountID); err != nil {
+		Scan(&video.ID, &video.Title, &video.Description, &video.UpVote, &video.DownVote, &video.Thumbnail, &video.VideoUrl, &video.AccountID); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +75,7 @@ func (v *videoRepository) GetListVideos(ctx context.Context, page, limit int) ([
 	var videos []*entities.Video
 	for rows.Next() {
 		video := &entities.Video{}
-		if err := rows.Scan(&video.ID, &video.Description, &video.UpVote, &video.DownVote, &video.Thumbnail, &video.VideoUrl, &video.AccountID); err != nil {
+		if err := rows.Scan(&video.ID, &video.Title, &video.Description, &video.UpVote, &video.DownVote, &video.Thumbnail, &video.VideoUrl, &video.AccountID); err != nil {
 			return nil, 0, err
 		}
 		videos = append(videos, video)

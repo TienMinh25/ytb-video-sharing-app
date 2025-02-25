@@ -31,6 +31,7 @@ func TestCreateVideo(t *testing.T) {
 		ctx := context.Background()
 		video := &entities.Video{
 			ID:          1,
+			Title:       "test",
 			Description: "Test Video",
 			UpVote:      10,
 			DownVote:    2,
@@ -43,18 +44,19 @@ func TestCreateVideo(t *testing.T) {
 			LastInsertID: video.ID,
 			RowAffected:  1,
 		}
-		cfg.db.EXPECT().ExecWithResult(ctx, gomock.Any(), video.Description, video.UpVote, video.DownVote, video.Thumbnail, video.VideoUrl, video.AccountID).Return(mockSqlResult, nil)
+		cfg.db.EXPECT().ExecWithResult(ctx, gomock.Any(), video.Title, video.Description, video.UpVote, video.DownVote, video.Thumbnail, video.VideoUrl, video.AccountID).Return(mockSqlResult, nil)
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any(), mockSqlResult.LastInsertID).Return(cfg.row)
 
-		cfg.row.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		cfg.row.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(args ...interface{}) error {
 				*args[0].(*int64) = video.ID
-				*args[1].(*string) = video.Description
-				*args[2].(*int64) = video.UpVote
-				*args[3].(*int64) = video.DownVote
-				*args[4].(*string) = video.Thumbnail
-				*args[5].(*string) = video.VideoUrl
-				*args[6].(*int64) = video.AccountID
+				*args[1].(*string) = video.Title
+				*args[2].(*string) = video.Description
+				*args[3].(*int64) = video.UpVote
+				*args[4].(*int64) = video.DownVote
+				*args[5].(*string) = video.Thumbnail
+				*args[6].(*string) = video.VideoUrl
+				*args[7].(*int64) = video.AccountID
 
 				return nil
 			})
@@ -71,6 +73,7 @@ func TestCreateVideo(t *testing.T) {
 
 		ctx := context.Background()
 		video := &entities.Video{
+			Title:       "test",
 			Description: "Test Video",
 			UpVote:      10,
 			DownVote:    2,
@@ -80,7 +83,7 @@ func TestCreateVideo(t *testing.T) {
 		}
 
 		expectedErr := errors.New("db execution failed")
-		cfg.db.EXPECT().ExecWithResult(ctx, gomock.Any(), video.Description, video.UpVote, video.DownVote, video.Thumbnail, video.VideoUrl, video.AccountID).Return(nil, expectedErr)
+		cfg.db.EXPECT().ExecWithResult(ctx, gomock.Any(), video.Title, video.Description, video.UpVote, video.DownVote, video.Thumbnail, video.VideoUrl, video.AccountID).Return(nil, expectedErr)
 
 		_, err := cfg.repo.CreateVideo(ctx, video)
 		assert.Error(t, err)
@@ -93,6 +96,7 @@ func TestCreateVideo(t *testing.T) {
 
 		ctx := context.Background()
 		video := &entities.Video{
+			Title:       "test",
 			Description: "Test Video",
 			UpVote:      10,
 			DownVote:    2,
@@ -103,7 +107,7 @@ func TestCreateVideo(t *testing.T) {
 
 		expectedErr := errors.New("db execution failed")
 		mockSqlResult := &MockSQLResult{}
-		cfg.db.EXPECT().ExecWithResult(ctx, gomock.Any(), video.Description, video.UpVote, video.DownVote, video.Thumbnail, video.VideoUrl, video.AccountID).Return(mockSqlResult, nil)
+		cfg.db.EXPECT().ExecWithResult(ctx, gomock.Any(), video.Title, video.Description, video.UpVote, video.DownVote, video.Thumbnail, video.VideoUrl, video.AccountID).Return(mockSqlResult, nil)
 
 		_, err := cfg.repo.CreateVideo(ctx, video)
 		assert.Error(t, err)
@@ -119,6 +123,7 @@ func TestGetVideo(t *testing.T) {
 		ctx := context.Background()
 		expectedVideo := &entities.Video{
 			ID:          1,
+			Title:       "test",
 			Description: "Test Video",
 			UpVote:      10,
 			DownVote:    2,
@@ -129,14 +134,15 @@ func TestGetVideo(t *testing.T) {
 
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any(), expectedVideo.ID).Return(cfg.row)
 
-		cfg.row.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(args ...interface{}) error {
+		cfg.row.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(args ...interface{}) error {
 			*args[0].(*int64) = expectedVideo.ID
-			*args[1].(*string) = expectedVideo.Description
-			*args[2].(*int64) = expectedVideo.UpVote
-			*args[3].(*int64) = expectedVideo.DownVote
-			*args[4].(*string) = expectedVideo.Thumbnail
-			*args[5].(*string) = expectedVideo.VideoUrl
-			*args[6].(*int64) = expectedVideo.AccountID
+			*args[1].(*string) = expectedVideo.Title
+			*args[2].(*string) = expectedVideo.Description
+			*args[3].(*int64) = expectedVideo.UpVote
+			*args[4].(*int64) = expectedVideo.DownVote
+			*args[5].(*string) = expectedVideo.Thumbnail
+			*args[6].(*string) = expectedVideo.VideoUrl
+			*args[7].(*int64) = expectedVideo.AccountID
 			return nil
 		})
 
@@ -152,7 +158,7 @@ func TestGetVideo(t *testing.T) {
 		ctx := context.Background()
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any(), gomock.Any()).Return(cfg.row)
 
-		cfg.row.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("no rows"))
+		cfg.row.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("no rows"))
 
 		video, err := cfg.repo.GetVideo(ctx, 1)
 		assert.Nil(t, video)
@@ -167,7 +173,7 @@ func TestGetVideo(t *testing.T) {
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any(), gomock.Any()).Return(cfg.row)
 
 		err := errors.New("scan error")
-		cfg.row.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(err)
+		cfg.row.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(err)
 
 		result, errRes := cfg.repo.GetVideo(ctx, 1)
 
@@ -184,8 +190,8 @@ func TestGetListVideos(t *testing.T) {
 
 		ctx := context.Background()
 		expectedVideos := []*entities.Video{
-			{ID: 1, Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1},
-			{ID: 2, Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2},
+			{ID: 1, Title: "test 1", Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1},
+			{ID: 2, Title: "test 2", Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2},
 		}
 
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any()).Return(cfg.row)
@@ -198,16 +204,17 @@ func TestGetListVideos(t *testing.T) {
 
 		cfg.rows.EXPECT().Next().Return(true).Times(len(expectedVideos))
 		cfg.rows.EXPECT().Next().Return(false).Times(1)
-		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(args ...interface{}) error {
+		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(args ...interface{}) error {
 			video := expectedVideos[0]
 			expectedVideos = expectedVideos[1:]
 			*args[0].(*int64) = video.ID
-			*args[1].(*string) = video.Description
-			*args[2].(*int64) = video.UpVote
-			*args[3].(*int64) = video.DownVote
-			*args[4].(*string) = video.Thumbnail
-			*args[5].(*string) = video.VideoUrl
-			*args[6].(*int64) = video.AccountID
+			*args[1].(*string) = video.Title
+			*args[2].(*string) = video.Description
+			*args[3].(*int64) = video.UpVote
+			*args[4].(*int64) = video.DownVote
+			*args[5].(*string) = video.Thumbnail
+			*args[6].(*string) = video.VideoUrl
+			*args[7].(*int64) = video.AccountID
 			return nil
 		}).Times(len(expectedVideos))
 
@@ -243,8 +250,8 @@ func TestGetListVideos(t *testing.T) {
 
 		ctx := context.Background()
 		expectedVideos := []*entities.Video{
-			{ID: 1, Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1},
-			{ID: 2, Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2},
+			{ID: 1, Title: "test 1", Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1},
+			{ID: 2, Title: "test 2", Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2},
 		}
 
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any()).Return(cfg.row)
@@ -270,8 +277,8 @@ func TestGetListVideos(t *testing.T) {
 
 		ctx := context.Background()
 		expectedVideos := []*entities.Video{
-			{ID: 1, Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1},
-			{ID: 2, Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2},
+			{ID: 1, Title: "test 1", Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1},
+			{ID: 2, Title: "test 2", Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2},
 		}
 
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any()).Return(cfg.row)
@@ -284,19 +291,20 @@ func TestGetListVideos(t *testing.T) {
 
 		err := errors.New("scan error")
 		cfg.rows.EXPECT().Next().Return(true).Times(len(expectedVideos))
-		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(args ...interface{}) error {
+		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(args ...interface{}) error {
 			video := expectedVideos[0]
 			expectedVideos = expectedVideos[1:]
 			*args[0].(*int64) = video.ID
-			*args[1].(*string) = video.Description
-			*args[2].(*int64) = video.UpVote
-			*args[3].(*int64) = video.DownVote
-			*args[4].(*string) = video.Thumbnail
-			*args[5].(*string) = video.VideoUrl
-			*args[6].(*int64) = video.AccountID
+			*args[1].(*string) = video.Title
+			*args[2].(*string) = video.Description
+			*args[3].(*int64) = video.UpVote
+			*args[4].(*int64) = video.DownVote
+			*args[5].(*string) = video.Thumbnail
+			*args[6].(*string) = video.VideoUrl
+			*args[7].(*int64) = video.AccountID
 			return nil
 		}).Times(len(expectedVideos) - 1)
-		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(err).Times(1)
+		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(err).Times(1)
 
 		cfg.rows.EXPECT().Close().Times(1)
 

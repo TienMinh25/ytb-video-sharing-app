@@ -7,6 +7,8 @@ import (
 	"ytb-video-sharing-app-be/internal/dto"
 	"ytb-video-sharing-app-be/internal/entities"
 	"ytb-video-sharing-app-be/internal/service"
+	"ytb-video-sharing-app-be/internal/websock"
+	"ytb-video-sharing-app-be/pkg"
 	"ytb-video-sharing-app-be/utils"
 
 	"github.com/gin-gonic/gin"
@@ -15,12 +17,15 @@ import (
 type AccountHandler struct {
 	accountService service.AccountService
 	router         *gin.Engine
+	queue          pkg.Queue
+	websock        websock.WebSocketServerInterface
 }
 
-func NewAccountHandler(accountService service.AccountService, router *gin.Engine) *AccountHandler {
+func NewAccountHandler(accountService service.AccountService, router *gin.Engine, websock websock.WebSocketServerInterface) *AccountHandler {
 	return &AccountHandler{
 		accountService: accountService,
 		router:         router,
+		websock:        websock,
 	}
 }
 
@@ -98,13 +103,14 @@ func (h *AccountHandler) Login(ctx *gin.Context) {
 //	@Failure		400	{object}	dto.ResponseError
 //	@Router			/accounts/logout/{accountID} [post]
 func (h *AccountHandler) Logout(ctx *gin.Context) {
-	refreshToken := strings.Split(ctx.Request.Header["X-Authorization"][0], " ")[1]
+	refreshToken := strings.Split(ctx.Request.Header.Get("X-Authorization"), " ")[1]
 	accountID, err := strconv.Atoi(ctx.Param("accountID"))
 
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid account id")
 	}
 
+	connID := ctx.Request.Header.Get("connID")
 	// delete in database
 	_, errRe := h.accountService.Logout(ctx, int64(accountID), refreshToken)
 
@@ -113,6 +119,8 @@ func (h *AccountHandler) Logout(ctx *gin.Context) {
 		return
 	}
 
+	// remove connection websocket
+	h.websock.CloseSingleConnection(int64(accountID), connID)
 	utils.SuccessResponse(ctx, http.StatusOK, &dto.LogoutResponse{})
 }
 

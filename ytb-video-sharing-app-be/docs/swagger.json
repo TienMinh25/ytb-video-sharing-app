@@ -535,6 +535,13 @@
         },
         "dto.ShareVideoRequest": {
             "type": "object",
+            "required": [
+                "downvote",
+                "thumbnail",
+                "title",
+                "upvote",
+                "video_url"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
@@ -543,6 +550,9 @@
                     "type": "integer"
                 },
                 "thumbnail": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "upvote": {
@@ -569,6 +579,9 @@
                     "type": "integer"
                 },
                 "thumbnail": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "upvote": {
@@ -606,6 +619,9 @@
                     "type": "integer"
                 },
                 "thumbnail": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 },
                 "upvote": {

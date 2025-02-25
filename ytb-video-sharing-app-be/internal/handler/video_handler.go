@@ -3,20 +3,25 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
 	"strconv"
 	"ytb-video-sharing-app-be/internal/dto"
 	"ytb-video-sharing-app-be/internal/entities"
 	"ytb-video-sharing-app-be/internal/service"
+	"ytb-video-sharing-app-be/pkg"
+	"ytb-video-sharing-app-be/third_party"
 	"ytb-video-sharing-app-be/utils"
 )
 
 type VideoHandler struct {
-	videoService service.VideoService
+	videoService  service.VideoService
+	messageBroker pkg.Queue
 }
 
-func NewVideoHandler(videoService service.VideoService) *VideoHandler {
+func NewVideoHandler(videoService service.VideoService, messageBroker pkg.Queue) *VideoHandler {
 	return &VideoHandler{
-		videoService: videoService,
+		videoService:  videoService,
+		messageBroker: messageBroker,
 	}
 }
 
@@ -57,7 +62,19 @@ func (v *VideoHandler) ShareVideo(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: push message to kafka, consumer job consume event and push notification to user
+	// push event to kafka
+	go func() {
+		payloadKafka := &third_party.VideoMessageEvent{
+			AccountId: claims.AccountID,
+			Title:     data.Title,
+			Thumbnail: data.Thumbnail,
+			SharedBy:  claims.Email,
+		}
+
+		payloadBytes, _ := third_party.SerializeVideoMessageEvent(payloadKafka)
+
+		v.messageBroker.Produce(os.Getenv("KAFKA_TOPIC"), payloadBytes)
+	}()
 
 	utils.SuccessResponse(ctx, http.StatusCreated, res)
 }

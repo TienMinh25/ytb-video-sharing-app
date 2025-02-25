@@ -154,10 +154,18 @@ definitions:
         type: integer
       thumbnail:
         type: string
+      title:
+        type: string
       upvote:
         type: integer
       video_url:
         type: string
+    required:
+    - downvote
+    - thumbnail
+    - title
+    - upvote
+    - video_url
     type: object
   dto.ShareVideoResponse:
     properties:
@@ -170,6 +178,8 @@ definitions:
       id:
         type: integer
       thumbnail:
+        type: string
+      title:
         type: string
       upvote:
         type: integer
@@ -194,6 +204,8 @@ definitions:
       id:
         type: integer
       thumbnail:
+        type: string
+      title:
         type: string
       upvote:
         type: integer

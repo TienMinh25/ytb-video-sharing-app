@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"ytb-video-sharing-app-be/db"
 	_ "ytb-video-sharing-app-be/docs"
@@ -13,6 +14,9 @@ import (
 	"ytb-video-sharing-app-be/internal/repository"
 	"ytb-video-sharing-app-be/internal/routes"
 	"ytb-video-sharing-app-be/internal/service"
+	"ytb-video-sharing-app-be/internal/websock"
+	"ytb-video-sharing-app-be/pkg"
+	"ytb-video-sharing-app-be/third_party"
 	"ytb-video-sharing-app-be/utils"
 
 	"github.com/gin-gonic/gin"
@@ -76,6 +80,33 @@ func StartServer(lifecycle fx.Lifecycle, r *routes.Router) {
 	})
 }
 
+func StartWebSocketServer(lifecycle fx.Lifecycle, wsMux *http.ServeMux, q pkg.Queue) {
+	lifecycle.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			address := os.Getenv("WEBSOCKET_SERVER_ADDRESS")
+
+			go func() {
+				fmt.Println("✅ WebSocket Server is running on", address)
+				if err := http.ListenAndServe(address, wsMux); err != nil {
+					log.Fatal(err)
+				}
+			}()
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			fmt.Println("Shutting down WebSocket server...")
+
+			if err := q.Close(); err != nil {
+				log.Println("Error shutting down queue:", err)
+			} else {
+				log.Println("✅ Queue shutdown successfully!")
+			}
+
+			return nil
+		},
+	})
+}
+
 // @title						YouTube Video Sharing API
 // @version					1.0
 // @description				API cho ứng dụng chia sẻ video YouTube
@@ -101,9 +132,11 @@ func main() {
 			routes.NewRouter,
 			utils.LoadKeys,
 			middleware.NewJWTAuthenticationMiddleware,
+			websock.NewWebSocketServer,
+			third_party.NewQueue,
 		),
 		fx.Invoke(LoadEnv, MigrateDB, utils.LoadKeys),
-		fx.Invoke(StartServer),
+		fx.Invoke(StartServer, StartWebSocketServer),
 	)
 
 	app.Run()
