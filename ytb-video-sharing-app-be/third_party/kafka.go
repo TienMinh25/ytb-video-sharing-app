@@ -66,7 +66,7 @@ func (q *queue) processKafkaMessage(message interface{}) error {
 		return err
 	}
 
-	// send websocket
+	// send message through websocket
 	q.websock.SendMessage(data.AccountId, &websock.EventMessage{
 		Title:     data.Title,
 		SharedBy:  data.SharedBy,

@@ -35,7 +35,7 @@ func NewWebSocketServer(keyManager *utils.KeyManager) (WebSocketServerInterface,
 		clients: make(map[int64]map[string]*websocket.Conn),
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
-				// allow for only FE
+				// TODO: allow for only FE
 				return true
 			},
 		},
