@@ -25,7 +25,14 @@ definitions:
     - fullname
     - password
     type: object
-  dto.CreateAccountResponse:
+  dto.CreateAccountResponseDocs:
+    properties:
+      data:
+        $ref: '#/definitions/dto.CreateAccountResponseWithOTP'
+      metadata:
+        $ref: '#/definitions/dto.Metadata'
+    type: object
+  dto.CreateAccountResponseWithOTP:
     properties:
       access_token:
         type: string
@@ -37,15 +44,10 @@ definitions:
         type: string
       id:
         type: integer
+      otp:
+        type: string
       refresh_token:
         type: string
-    type: object
-  dto.CreateAccountResponseDocs:
-    properties:
-      data:
-        $ref: '#/definitions/dto.CreateAccountResponse'
-      metadata:
-        $ref: '#/definitions/dto.Metadata'
     type: object
   dto.ErrorResponse:
     properties:
@@ -72,7 +74,14 @@ definitions:
     - email
     - password
     type: object
-  dto.LoginResponse:
+  dto.LoginResponseDocs:
+    properties:
+      data:
+        $ref: '#/definitions/dto.LoginResponseWithOTP'
+      metadata:
+        $ref: '#/definitions/dto.Metadata'
+    type: object
+  dto.LoginResponseWithOTP:
     properties:
       access_token:
         type: string
@@ -84,15 +93,10 @@ definitions:
         type: string
       id:
         type: integer
+      otp:
+        type: string
       refresh_token:
         type: string
-    type: object
-  dto.LoginResponseDocs:
-    properties:
-      data:
-        $ref: '#/definitions/dto.LoginResponse'
-      metadata:
-        $ref: '#/definitions/dto.Metadata'
     type: object
   dto.LogoutResponse:
     type: object
@@ -165,16 +169,12 @@ definitions:
       video_url:
         type: string
     required:
-    - downvote
     - thumbnail
     - title
-    - upvote
     - video_url
     type: object
   dto.ShareVideoResponse:
     properties:
-      account_id:
-        type: integer
       description:
         type: string
       downvote:
@@ -199,14 +199,14 @@ definitions:
     type: object
   dto.VideoResponse:
     properties:
-      account_id:
-        type: integer
       description:
         type: string
       downvote:
         type: integer
       id:
         type: integer
+      shared_by:
+        type: string
       thumbnail:
         type: string
       title:
@@ -411,6 +411,11 @@ paths:
       - application/json
       description: Create new video and return itself.
       parameters:
+      - description: WebSocket connection ID
+        in: query
+        name: conn_id
+        required: true
+        type: string
       - description: Share video payload
         in: body
         name: request

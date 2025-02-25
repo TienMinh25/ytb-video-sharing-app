@@ -3,15 +3,15 @@ package third_party
 import (
 	"context"
 	"fmt"
-	kafkaconfluent "github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"github.com/google/uuid"
-	"google.golang.org/protobuf/proto"
 	"os"
 	"strconv"
 	"sync"
-	"ytb-video-sharing-app-be/internal/websock"
 	"ytb-video-sharing-app-be/pkg"
 	"ytb-video-sharing-app-be/pkg/worker"
+
+	kafkaconfluent "github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/google/uuid"
+	"google.golang.org/protobuf/proto"
 )
 
 type queue struct {
@@ -21,10 +21,9 @@ type queue struct {
 	subscribers []*pkg.SubscriptionInfo  // information of subscribers
 	mu          sync.RWMutex             // concurrent lock when subcribe
 	workerPool  *worker.Pool             // Worker pool for processing messages
-	websock     websock.WebSocketServerInterface
 }
 
-func NewQueue(websock websock.WebSocketServerInterface) (pkg.Queue, error) {
+func NewQueue() (pkg.Queue, error) {
 	brokersString := os.Getenv("KAFKA_BROKERS")
 	groupID := os.Getenv("KAFKA_GROUP_ID")
 
@@ -33,7 +32,6 @@ func NewQueue(websock websock.WebSocketServerInterface) (pkg.Queue, error) {
 		producer:    newKafkaProducer(brokersString),
 		consumer:    newKafkaConsumer(brokersString, groupID),
 		subscribers: make([]*pkg.SubscriptionInfo, 0),
-		websock:     websock,
 	}
 
 	workerPool := worker.NewWorkerPool(5, 100, q.processKafkaMessage)
@@ -60,18 +58,18 @@ func (q *queue) processKafkaMessage(message interface{}) error {
 
 	fmt.Printf("Processing Kafka message: %s\n", string(kafkaMsg.Value))
 
-	data, err := DeserializeVideoMessageEvent(kafkaMsg.Value)
+	// data, err := DeserializeVideoMessageEvent(kafkaMsg.Value)
 
-	if err != nil {
-		return err
-	}
+	// if err != nil {
+	// 	return err
+	// }
 
 	// send message through websocket
-	q.websock.SendMessage(data.AccountId, &websock.EventMessage{
-		Title:     data.Title,
-		SharedBy:  data.SharedBy,
-		Thumbnail: data.Thumbnail,
-	})
+	// q.websock.SendMessage(data.AccountId, &websock.EventMessage{
+	// 	Title:     data.Title,
+	// 	SharedBy:  data.SharedBy,
+	// 	Thumbnail: data.Thumbnail,
+	// })
 
 	return nil
 }

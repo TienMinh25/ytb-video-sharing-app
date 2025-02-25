@@ -316,6 +316,13 @@ const docTemplate = `{
                 "summary": "Share new video",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "WebSocket connection ID",
+                        "name": "conn_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
                         "description": "Share video payload",
                         "name": "request",
                         "in": "body",
@@ -386,7 +393,18 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateAccountResponse": {
+        "dto.CreateAccountResponseDocs": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.CreateAccountResponseWithOTP"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/dto.Metadata"
+                }
+            }
+        },
+        "dto.CreateAccountResponseWithOTP": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -404,19 +422,11 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "otp": {
+                    "type": "string"
+                },
                 "refresh_token": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.CreateAccountResponseDocs": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/dto.CreateAccountResponse"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/dto.Metadata"
                 }
             }
         },
@@ -458,7 +468,18 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.LoginResponse": {
+        "dto.LoginResponseDocs": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.LoginResponseWithOTP"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/dto.Metadata"
+                }
+            }
+        },
+        "dto.LoginResponseWithOTP": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -476,19 +497,11 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "otp": {
+                    "type": "string"
+                },
                 "refresh_token": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.LoginResponseDocs": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/dto.LoginResponse"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/dto.Metadata"
                 }
             }
         },
@@ -582,10 +595,8 @@ const docTemplate = `{
         "dto.ShareVideoRequest": {
             "type": "object",
             "required": [
-                "downvote",
                 "thumbnail",
                 "title",
-                "upvote",
                 "video_url"
             ],
             "properties": {
@@ -612,9 +623,6 @@ const docTemplate = `{
         "dto.ShareVideoResponse": {
             "type": "object",
             "properties": {
-                "account_id": {
-                    "type": "integer"
-                },
                 "description": {
                     "type": "string"
                 },
@@ -652,9 +660,6 @@ const docTemplate = `{
         "dto.VideoResponse": {
             "type": "object",
             "properties": {
-                "account_id": {
-                    "type": "integer"
-                },
                 "description": {
                     "type": "string"
                 },
@@ -663,6 +668,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "shared_by": {
+                    "type": "string"
                 },
                 "thumbnail": {
                     "type": "string"

@@ -18,14 +18,15 @@ type AccountHandler struct {
 	accountService service.AccountService
 	router         *gin.Engine
 	queue          pkg.Queue
-	websock        websock.WebSocketServerInterface
+	opts           websock.RetentionMap
 }
 
-func NewAccountHandler(accountService service.AccountService, router *gin.Engine, websock websock.WebSocketServerInterface) *AccountHandler {
+func NewAccountHandler(accountService service.AccountService, router *gin.Engine, queue pkg.Queue, opts websock.RetentionMap) *AccountHandler {
 	return &AccountHandler{
 		accountService: accountService,
 		router:         router,
-		websock:        websock,
+		queue:          queue,
+		opts:           opts,
 	}
 }
 
@@ -57,7 +58,14 @@ func (h *AccountHandler) Register(ctx *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(ctx, http.StatusOK, res)
+	newOTP := h.opts.NewOTP().Key
+
+	response := &dto.CreateAccountResponseWithOTP{
+		CreateAccountResponse: *res,
+		OTP:                   newOTP,
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, response)
 }
 
 // Login godoc
@@ -84,7 +92,14 @@ func (h *AccountHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(ctx, http.StatusOK, res)
+	newOTP := h.opts.NewOTP().Key
+
+	response := &dto.LoginResponseWithOTP{
+		LoginResponse: *res,
+		OTP:           newOTP,
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, response)
 }
 
 // Logout godoc
@@ -110,7 +125,6 @@ func (h *AccountHandler) Logout(ctx *gin.Context) {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid account id")
 	}
 
-	connID := ctx.Request.Header.Get("connID")
 	// delete in database
 	_, errRe := h.accountService.Logout(ctx, int64(accountID), refreshToken)
 
@@ -119,8 +133,6 @@ func (h *AccountHandler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	// remove connection websocket
-	h.websock.CloseSingleConnection(int64(accountID), connID)
 	utils.SuccessResponse(ctx, http.StatusOK, &dto.LogoutResponse{})
 }
 

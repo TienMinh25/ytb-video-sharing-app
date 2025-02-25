@@ -1,34 +1,29 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
-import { VideoShareRequest } from '../../types/video';
 
 const VideoShareForm: React.FC = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [error, setError] = useState('');
-  const { token } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
     try {
       const videoId = extractVideoId(youtubeUrl);
       if (!videoId) throw new Error('Invalid YouTube URL');
 
       const youtubeData = await fetchYouTubeMetadata(videoId);
 
-      await api.post<any, any, VideoShareRequest>(
-        '/videos',
-        {
-          video_url: youtubeUrl,
-          title: youtubeData.title,
-          description: youtubeData.description,
-          downvote: youtubeData.downvote,
-          upvote: youtubeData.upvote,
-          thumbnail: youtubeData.thumbnail,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      await api.post(`/videos?conn_id=${localStorage.getItem('connID')}`, {
+        video_url: youtubeUrl,
+        title: youtubeData.title,
+        description: youtubeData.description,
+        downvote: youtubeData.downvote,
+        upvote: youtubeData.upvote,
+        thumbnail: youtubeData.thumbnail,
+      });
+
       setYoutubeUrl('');
     } catch (err: any) {
       setError(err.message || 'Failed to share video');

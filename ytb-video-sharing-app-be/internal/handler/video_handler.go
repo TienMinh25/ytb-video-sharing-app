@@ -1,14 +1,15 @@
 package handler
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"ytb-video-sharing-app-be/internal/dto"
 	"ytb-video-sharing-app-be/internal/entities"
 	"ytb-video-sharing-app-be/internal/service"
+	"ytb-video-sharing-app-be/internal/websock"
 	"ytb-video-sharing-app-be/pkg"
-	"ytb-video-sharing-app-be/third_party"
 	"ytb-video-sharing-app-be/utils"
 
 	"github.com/gin-gonic/gin"
@@ -17,12 +18,14 @@ import (
 type VideoHandler struct {
 	videoService  service.VideoService
 	messageBroker pkg.Queue
+	wsManager     *websock.Manager
 }
 
-func NewVideoHandler(videoService service.VideoService, messageBroker pkg.Queue) *VideoHandler {
+func NewVideoHandler(videoService service.VideoService, messageBroker pkg.Queue, wsManager *websock.Manager) *VideoHandler {
 	return &VideoHandler{
 		videoService:  videoService,
 		messageBroker: messageBroker,
+		wsManager:     wsManager,
 	}
 }
 
@@ -36,6 +39,7 @@ func NewVideoHandler(videoService service.VideoService, messageBroker pkg.Queue)
 //
 //	@Security		BearerAuth
 //
+//	@Param			conn_id	query		string					true	"WebSocket connection ID"
 //	@Param			request	body		dto.ShareVideoRequest	true	"Share video payload"
 //	@Success		201		{object}	dto.ShareVideoResponseDocs
 //	@Failure		400		{object}	dto.ResponseError
@@ -46,6 +50,15 @@ func (v *VideoHandler) ShareVideo(ctx *gin.Context) {
 	claims := claimsStr.(*utils.UserClaims)
 
 	req, _ := ctx.Get("data")
+
+	// TODO: get connid of connection websocket in here
+	connID := ctx.Query("conn_id")
+
+	if connID == "" {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Missing conn_id in query")
+		return
+	}
+
 	data := req.(dto.ShareVideoRequest)
 
 	// call service to share video
@@ -65,17 +78,40 @@ func (v *VideoHandler) ShareVideo(ctx *gin.Context) {
 	}
 
 	// push event to kafka
+	// go func() {
+	// 	payloadKafka := &third_party.VideoMessageEvent{
+	// 		AccountId: claims.AccountID,
+	// 		Title:     data.Title,
+	// 		Thumbnail: data.Thumbnail,
+	// 		SharedBy:  claims.Email,
+	// 	}
+
+	// 	payloadBytes, _ := third_party.SerializeVideoMessageEvent(payloadKafka)
+
+	// 	v.messageBroker.Produce(os.Getenv("KAFKA_TOPIC"), payloadBytes)
+	// }()
+
+	// send through websocket
 	go func() {
-		payloadKafka := &third_party.VideoMessageEvent{
-			AccountId: claims.AccountID,
-			Title:     data.Title,
-			Thumbnail: data.Thumbnail,
-			SharedBy:  claims.Email,
+		if connID != "" {
+			newEvent := websock.EventNotificationMessage{
+				Title:     data.Title,
+				SharedBy:  claims.Email,
+				Thumbnail: data.Thumbnail,
+			}
+
+			payload, err := json.Marshal(newEvent)
+
+			if err != nil {
+				log.Println("error when marshaling json: ", err)
+				return
+			}
+
+			v.wsManager.SendBroadCast(websock.Event{
+				Type:    "new_video",
+				Payload: payload,
+			}, connID)
 		}
-
-		payloadBytes, _ := third_party.SerializeVideoMessageEvent(payloadKafka)
-
-		v.messageBroker.Produce(os.Getenv("KAFKA_TOPIC"), payloadBytes)
 	}()
 
 	utils.SuccessResponse(ctx, http.StatusCreated, res)

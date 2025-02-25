@@ -12,6 +12,7 @@ export interface TokenResponse {
   email: string;
   fullname: string;
   id: number;
+  otp: string;
 }
 
 export interface RegisterRequest {

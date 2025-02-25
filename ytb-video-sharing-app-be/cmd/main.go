@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/cors"
 	"log"
 	"net/http"
 	"os"
@@ -20,6 +19,8 @@ import (
 	"ytb-video-sharing-app-be/pkg"
 	"ytb-video-sharing-app-be/third_party"
 	"ytb-video-sharing-app-be/utils"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -90,6 +91,10 @@ func StartServer(lifecycle fx.Lifecycle, r *routes.Router) {
 	})
 }
 
+func NewRetention() websock.RetentionMap {
+	return websock.NewRetentionMap(context.Background(), 1*time.Minute)
+}
+
 func StartWebSocketServer(lifecycle fx.Lifecycle, wsMux *http.ServeMux, q pkg.Queue) {
 	lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
@@ -142,7 +147,8 @@ func main() {
 			routes.NewRouter,
 			utils.LoadKeys,
 			middleware.NewJWTAuthenticationMiddleware,
-			websock.NewWebSocketServer,
+			websock.NewManager,
+			NewRetention,
 			third_party.NewQueue,
 		),
 		fx.Invoke(LoadEnv, MigrateDB, utils.LoadKeys),

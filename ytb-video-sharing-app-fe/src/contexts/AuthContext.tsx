@@ -7,14 +7,10 @@ import React, {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import {
-  connectWebSocket,
-  disconnectWebSocket,
-  startHeartbeat,
-} from '../services/websocket';
+import { connectWebSocket, disconnectWebSocket } from '../services/websocket';
+import { v4 as uuidv4 } from 'uuid';
 import {
   LoginRequest,
-  RefreshTokenResponse,
   RegisterRequest,
   TokenResponse,
   User,
@@ -31,14 +27,13 @@ interface AuthContextType {
     setErr: React.Dispatch<React.SetStateAction<string>>,
     event: React.FormEvent<HTMLFormElement>,
   ) => Promise<void>;
-  logout: () => void;
-  refreshAccessToken: () => Promise<void>;
   register: (
     inputs: RegisterRequest,
     setErr: React.Dispatch<React.SetStateAction<string>>,
     event: React.FormEvent<HTMLFormElement>,
   ) => Promise<void>;
   loading: boolean;
+  logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -99,12 +94,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setToken(data.access_token);
       setRefreshToken(data.refresh_token);
       setUser(user);
+      const connID = uuidv4();
 
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('accessToken', data.access_token);
       localStorage.setItem('refreshToken', data.refresh_token);
+      localStorage.setItem('connID', connID);
 
-      await setupWebSocket(data.access_token);
+      await setupWebSocket(data.otp, connID);
       navigate('/');
     } catch (err: any) {
       setErr(err.response?.data?.error || 'Registration failed');
@@ -138,11 +135,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setRefreshToken(data.refresh_token);
       setUser(user);
 
+      const connID = uuidv4();
       localStorage.setItem('accessToken', data.access_token);
       localStorage.setItem('refreshToken', data.refresh_token);
       localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('connID', connID);
 
-      await setupWebSocket(data.access_token);
+      await setupWebSocket(data.otp, connID);
       navigate('/');
     } catch (err: any) {
       setErr(err.response?.data?.error || 'Login failed');
@@ -152,70 +151,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const logout = async () => {
+    const token = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+
     try {
-      if (token && refreshToken && connId) {
+      if (token && refreshToken) {
         await api.post(
-          '/accounts/logout',
+          `/accounts/logout/${user?.id}`,
           {},
           {
             headers: {
               Authorization: `Bearer ${token}`,
               'X-Authorization': refreshToken,
-              connID: connId,
             },
           },
         );
+
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('otp');
+        setUser(null);
+        setToken('');
+        setRefreshToken('');
       }
     } catch (err) {
       console.error('Logout failed:', err);
     } finally {
-      setUser(null);
-      setToken(null);
-      setRefreshToken(null);
-      setConnId(null);
-
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('connId');
-      localStorage.removeItem('user');
-
       disconnectWebSocket();
       navigate('/');
     }
   };
 
-  const refreshAccessToken = async () => {
-    if (!refreshToken) throw new Error('No refresh token available');
+  const setupWebSocket = async (otp: string, connID: string) => {
     try {
-      const res = await api.post<ApiResponse<RefreshTokenResponse>>(
-        '/accounts/refresh-token',
-        {},
-        { headers: { 'X-Authorization': refreshToken } },
-      );
-      const { access_token, refresh_token } = res.data.data;
-
-      setToken(access_token);
-      setRefreshToken(refresh_token);
-      localStorage.setItem('accessToken', access_token);
-      localStorage.setItem('refreshToken', refresh_token);
-
-      await setupWebSocket(access_token); // Reconnect WebSocket với token mới
-    } catch (err) {
-      console.error('Token refresh failed:', err);
-      logout();
-      throw err;
-    }
-  };
-
-  const setupWebSocket = async (accessToken: string) => {
-    try {
-      const ws = await connectWebSocket(
-        accessToken,
-        refreshAccessToken,
-        (connId) => setConnId(connId), // Callback để set connId vào state
-      );
+      const ws = await connectWebSocket(otp, connID);
       wsRef.current = ws;
-      startHeartbeat(ws); // Bắt đầu heartbeat ngay
       console.log('WebSocket setup complete');
     } catch (err) {
       console.error('WebSocket setup failed:', err);
@@ -223,21 +194,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   useEffect(() => {
-    if (!token) {
-      disconnectWebSocket();
-      setConnId(null);
-      return;
-    }
+    const verifyToken = async () => {
+      if (!token) return;
 
-    console.log('Setting up WebSocket with token:', token);
-    setupWebSocket(token);
+      try {
+        // Call API kiểm tra token
+        await api.get('/accounts/check-token', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (err) {
+        console.warn('Token expired, refreshing...');
 
-    // Cleanup chỉ khi component unmount hoặc token thay đổi
-    return () => {
-      // Chỉ đóng khi thực sự cần, để debug thì comment dòng dưới
-      // disconnectWebSocket();
-      console.log('Cleanup WebSocket for token:', token);
+        try {
+          // Gọi API refresh token
+          const res = await api.post('/accounts/refresh-token', {
+            refreshToken,
+          });
+
+          const { access_token } = res.data.data;
+          setToken(access_token);
+          localStorage.setItem('accessToken', access_token);
+        } catch (err) {
+          console.error('Refresh token failed, logging out...');
+          await logout();
+        }
+      }
     };
+
+    verifyToken();
   }, [token]);
 
   return (
@@ -248,10 +232,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         refreshToken,
         connId,
         login,
-        logout,
-        refreshAccessToken,
         register,
         loading,
+        logout: logout,
       }}
     >
       {children}

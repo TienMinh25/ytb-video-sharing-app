@@ -24,7 +24,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             {user ? (
               <button
                 onClick={logout}
-                className='text-red-500 hover:text-red-700'
+                className='text-red-500 hover:text-red-700 cursor-pointer'
               >
                 Logout
               </button>
