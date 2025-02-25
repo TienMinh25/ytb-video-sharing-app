@@ -1,22 +1,31 @@
 @import 'tailwindcss';
 
-@theme {
+:root {
   --color-primary: oklch(60% 0.25 240);
   --color-secondary: oklch(50% 0.2 180);
   --spacing-unit: 1rem;
   --font-sans: 'Inter', sans-serif;
+
+  --background: oklch(100% 0 0);
+  --foreground: oklch(10% 0.05 0);
 }
 
 @layer base {
-  :root {
-    --background: oklch(100% 0 0);
-    --foreground: oklch(10% 0.05 0);
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 
 @layer components {
   .btn {
-    @apply bg-[var(--color-primary)] text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-colors;
+    @apply px-4 py-2 rounded-md transition-colors text-white;
+    background-color: var(--color-primary);
+  }
+
+  .btn:hover {
+    opacity: 0.9;
   }
 }
 

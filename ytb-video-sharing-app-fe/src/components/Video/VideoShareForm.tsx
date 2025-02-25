@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
-import { useAuth } from '../../contexts/AuthContext';
 
 const VideoShareForm: React.FC = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');

@@ -1,20 +1,20 @@
 import React, {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   ReactNode,
+  useEffect,
+  useState
 } from 'react';
-import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 import {
   connectWebSocket,
   disconnectWebSocket,
   startHeartbeat,
 } from '../services/websocket';
+import { User } from '../types/auth';
 
 interface AuthContextType {
-  user: any | null;
+  user: User | null;
   token: string | null;
   refreshToken: string | null;
   connId: string | null;
@@ -23,12 +23,12 @@ interface AuthContextType {
   refreshAccessToken: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(
     localStorage.getItem('accessToken'),
   );
@@ -151,10 +151,4 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   }, [token]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within an AuthProvider');
-  return context;
 };
