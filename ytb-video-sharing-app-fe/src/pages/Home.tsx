@@ -1,39 +1,88 @@
-import React, { useState, useEffect } from 'react';
-import VideoCard from '../components/Video/VideoCard';
-import VideoHistory from '../components/Video/VideoHistory';
+import React, { useCallback, useEffect, useState } from 'react';
 import NotificationPopup from '../components/Notification/NotificationPopup';
+import VideoCard from '../components/Video/VideoCard';
 import api from '../services/api';
-import Header from '../components/Auth/Header';
+import { ApiResponse } from '../types/response';
+import { Video } from '../types/video';
 
-interface Video {
+interface VideoResponse {
   id: number;
   title: string;
-  youtubeUrl: string;
-  sharedBy: string;
+  description: string;
+  thumbnail: string;
   upvote: number;
   downvote: number;
+  video_url: string;
+  account_id: number;
+  account_email: string;
 }
 
 const Home: React.FC = () => {
+  const [initialLoading, setInitialLoading] = useState(false);
+  const [fetchingMore, setFetchingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [videos, setVideos] = useState<Video[]>([]);
+  const [page, setPage] = useState(1);
+  const limit = 6;
 
-  useEffect(() => {
-    fetchVideos();
-  }, []);
+  const mapVideoResponse = (video: VideoResponse): Video => ({
+    id: video.id,
+    title: video.title,
+    description: video.description,
+    youtubeUrl: video.video_url,
+    sharedBy: video.account_email,
+    upvote: video.upvote,
+    downvote: video.downvote,
+  });
 
-  const fetchVideos = async () => {
+  const fetchVideos = async (pageNumber: number) => {
     try {
-      const response = await api.get('/videos');
-      setVideos(response.data);
-    } catch (err) {
-      console.error('Failed to fetch videos', err);
+      const res = await api.get<ApiResponse<VideoResponse[]>>(
+        `/videos?page=${pageNumber}&limit=${limit}`,
+      );
+      const { data, metadata } = res.data;
+
+      if (pageNumber === 1) {
+        setVideos(data.map(mapVideoResponse));
+      } else {
+        setVideos((prev) => [...prev, ...data.map(mapVideoResponse)]);
+      }
+
+      setHasMore(metadata.pagination.is_next);
+      setPage(pageNumber + 1);
+    } catch (error) {
+      console.error('Failed to fetch videos', error);
+      setHasMore(false);
     }
   };
 
-  const handleVideoView = (videoId: number) => {
-    // Mock implementation for tracking watched videos
-    api.post('/videos/history', { videoId });
-  };
+  useEffect(() => {
+    setInitialLoading(true);
+    fetchVideos(1).finally(() => setInitialLoading(false));
+  }, []);
+
+  const fetchMoreVideos = useCallback(async () => {
+    if (fetchingMore || !hasMore) return;
+
+    setFetchingMore(true);
+    await fetchVideos(page);
+    setFetchingMore(false);
+  }, [page, fetchingMore, hasMore]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const { scrollTop, clientHeight, scrollHeight } =
+        document.documentElement;
+      if (scrollTop + clientHeight >= scrollHeight - 100 && hasMore) {
+        fetchMoreVideos();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [fetchMoreVideos, hasMore]);
 
   return (
     <div className='container mx-auto p-4'>
@@ -48,16 +97,11 @@ const Home: React.FC = () => {
           ) : (
             <div className='grid gap-4'>
               {videos.map((video) => (
-                <VideoCard
-                  key={video.id}
-                  video={video}
-                  onView={() => handleVideoView(video.id)}
-                />
+                <VideoCard key={video.id} video={video} />
               ))}
             </div>
           )}
         </div>
-        <VideoHistory />
       </div>
     </div>
   );

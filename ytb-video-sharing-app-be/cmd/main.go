@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"log"
 	"net/http"
 	"os"
+	"time"
 	"ytb-video-sharing-app-be/db"
 	_ "ytb-video-sharing-app-be/docs"
 	"ytb-video-sharing-app-be/internal/handler"
@@ -51,6 +53,14 @@ func MigrateDB() error {
 
 func NewGinEngine() *gin.Engine {
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowMethods:     []string{http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodConnect, http.MethodOptions, http.MethodTrace},
+		AllowHeaders:     []string{"*"},
+		AllowCredentials: true,
+		AllowOrigins:     []string{"http://localhost:5173"},
+		MaxAge:           12 * time.Hour,
+	}))
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
