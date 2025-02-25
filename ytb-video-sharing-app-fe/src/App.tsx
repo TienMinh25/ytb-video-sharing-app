@@ -5,6 +5,8 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Share from './pages/Share';
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
 
 const App: React.FC = () => {
   return (
@@ -15,6 +17,8 @@ const App: React.FC = () => {
             <Routes>
               <Route path='/' element={<Home />} />
               <Route path='/share' element={<Share />} />
+              <Route path='/login' element={<Login />} />
+              <Route path='/register' element={<Register />} />
             </Routes>
           </Layout>
         </NotificationProvider>

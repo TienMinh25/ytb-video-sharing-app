@@ -3,6 +3,7 @@ import VideoCard from '../components/Video/VideoCard';
 import VideoHistory from '../components/Video/VideoHistory';
 import NotificationPopup from '../components/Notification/NotificationPopup';
 import api from '../services/api';
+import Header from '../components/Auth/Header';
 
 interface Video {
   id: number;
@@ -36,9 +37,6 @@ const Home: React.FC = () => {
 
   return (
     <div className='container mx-auto p-4'>
-      <h2 className='text-3xl font-bold mb-6 text-[var(--foreground)]'>
-        Funny Movies
-      </h2>
       <NotificationPopup />
       <div className='grid gap-6'>
         <div>
