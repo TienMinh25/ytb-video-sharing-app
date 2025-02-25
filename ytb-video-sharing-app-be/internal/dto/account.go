@@ -19,9 +19,9 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	AccessToken  string          `json:"access_token"`
-	RefreshToken string          `json:"refresh_token"`
-	Info         AccountResponse `json:"info"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	AccountResponse
 }
 
 type RefreshTokenResponse struct {
@@ -31,6 +31,8 @@ type RefreshTokenResponse struct {
 
 type LogoutResponse struct {
 }
+
+type CheckTokenResponse struct{}
 
 type AccountResponse struct {
 	ID        int64  `json:"id"`

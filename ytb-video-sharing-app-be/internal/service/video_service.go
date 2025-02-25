@@ -40,7 +40,6 @@ func (v videoServie) ShareVideoYTB(ctx context.Context, payload *entities.Video)
 		DownVote:    res.DownVote,
 		Thumbnail:   res.Thumbnail,
 		VideoUrl:    res.VideoUrl,
-		AccountID:   res.AccountID,
 	}, nil
 }
 
@@ -60,7 +59,7 @@ func (v *videoServie) GetListVideos(ctx context.Context, limit int, page int) ([
 			DownVote:    video.DownVote,
 			Thumbnail:   video.Thumbnail,
 			VideoUrl:    video.VideoUrl,
-			AccountID:   video.AccountID,
+			SharedBy:    video.FullName,
 		})
 	}
 

@@ -15,6 +15,40 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/accounts/check-token": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "check token every user access web page",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "check access token",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CheckTokenResponseDocs"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/accounts/login": {
             "post": {
                 "description": "Authenticate user and return access token \u0026 refresh token",
@@ -315,20 +349,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AccountResponse": {
+        "dto.CheckTokenResponse": {
+            "type": "object"
+        },
+        "dto.CheckTokenResponseDocs": {
             "type": "object",
             "properties": {
-                "avatar_url": {
-                    "type": "string"
+                "data": {
+                    "$ref": "#/definitions/dto.CheckTokenResponse"
                 },
-                "email": {
-                    "type": "string"
-                },
-                "fullname": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
+                "metadata": {
+                    "$ref": "#/definitions/dto.Metadata"
                 }
             }
         },
@@ -433,8 +464,17 @@ const docTemplate = `{
                 "access_token": {
                     "type": "string"
                 },
-                "info": {
-                    "$ref": "#/definitions/dto.AccountResponse"
+                "avatar_url": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "refresh_token": {
                     "type": "string"

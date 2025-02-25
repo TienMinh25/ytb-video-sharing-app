@@ -2,11 +2,12 @@ package repository
 
 import (
 	"context"
+	"testing"
+	"ytb-video-sharing-app-be/internal/entities"
+
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-	"testing"
-	"ytb-video-sharing-app-be/internal/entities"
 )
 
 type videoConfig struct {
@@ -190,8 +191,8 @@ func TestGetListVideos(t *testing.T) {
 
 		ctx := context.Background()
 		expectedVideos := []*entities.Video{
-			{ID: 1, Title: "test 1", Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1},
-			{ID: 2, Title: "test 2", Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2},
+			{ID: 1, Title: "test 1", Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1, FullName: "User One"},
+			{ID: 2, Title: "test 2", Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2, FullName: "User Two"},
 		}
 
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any()).Return(cfg.row)
@@ -204,7 +205,7 @@ func TestGetListVideos(t *testing.T) {
 
 		cfg.rows.EXPECT().Next().Return(true).Times(len(expectedVideos))
 		cfg.rows.EXPECT().Next().Return(false).Times(1)
-		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(args ...interface{}) error {
+		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(args ...interface{}) error {
 			video := expectedVideos[0]
 			expectedVideos = expectedVideos[1:]
 			*args[0].(*int64) = video.ID
@@ -215,6 +216,7 @@ func TestGetListVideos(t *testing.T) {
 			*args[5].(*string) = video.Thumbnail
 			*args[6].(*string) = video.VideoUrl
 			*args[7].(*int64) = video.AccountID
+			*args[8].(*string) = video.FullName
 			return nil
 		}).Times(len(expectedVideos))
 
@@ -250,8 +252,8 @@ func TestGetListVideos(t *testing.T) {
 
 		ctx := context.Background()
 		expectedVideos := []*entities.Video{
-			{ID: 1, Title: "test 1", Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1},
-			{ID: 2, Title: "test 2", Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2},
+			{ID: 1, Title: "test 1", Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1, FullName: "User One"},
+			{ID: 2, Title: "test 2", Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2, FullName: "User Two"},
 		}
 
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any()).Return(cfg.row)
@@ -277,8 +279,8 @@ func TestGetListVideos(t *testing.T) {
 
 		ctx := context.Background()
 		expectedVideos := []*entities.Video{
-			{ID: 1, Title: "test 1", Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1},
-			{ID: 2, Title: "test 2", Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2},
+			{ID: 1, Title: "test 1", Description: "Video 1", UpVote: 5, DownVote: 1, Thumbnail: "thumb1.jpg", VideoUrl: "url1", AccountID: 1, FullName: "User One"},
+			{ID: 2, Title: "test 2", Description: "Video 2", UpVote: 3, DownVote: 0, Thumbnail: "thumb2.jpg", VideoUrl: "url2", AccountID: 2, FullName: "User Two"},
 		}
 
 		cfg.db.EXPECT().QueryRow(ctx, gomock.Any()).Return(cfg.row)
@@ -291,7 +293,7 @@ func TestGetListVideos(t *testing.T) {
 
 		err := errors.New("scan error")
 		cfg.rows.EXPECT().Next().Return(true).Times(len(expectedVideos))
-		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(args ...interface{}) error {
+		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(args ...interface{}) error {
 			video := expectedVideos[0]
 			expectedVideos = expectedVideos[1:]
 			*args[0].(*int64) = video.ID
@@ -302,9 +304,10 @@ func TestGetListVideos(t *testing.T) {
 			*args[5].(*string) = video.Thumbnail
 			*args[6].(*string) = video.VideoUrl
 			*args[7].(*int64) = video.AccountID
+			*args[8].(*string) = video.FullName
 			return nil
 		}).Times(len(expectedVideos) - 1)
-		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(err).Times(1)
+		cfg.rows.EXPECT().Scan(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(err).Times(1)
 
 		cfg.rows.EXPECT().Close().Times(1)
 

@@ -2,7 +2,8 @@ import React, {
   createContext,
   ReactNode,
   useEffect,
-  useState
+  useRef,
+  useState,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -11,24 +12,49 @@ import {
   disconnectWebSocket,
   startHeartbeat,
 } from '../services/websocket';
-import { User } from '../types/auth';
+import {
+  LoginRequest,
+  RefreshTokenResponse,
+  RegisterRequest,
+  TokenResponse,
+  User,
+} from '../types/auth';
+import { ApiResponse } from '../types/response';
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   refreshToken: string | null;
   connId: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (
+    inputs: LoginRequest,
+    setErr: React.Dispatch<React.SetStateAction<string>>,
+    event: React.FormEvent<HTMLFormElement>,
+  ) => Promise<void>;
   logout: () => void;
   refreshAccessToken: () => Promise<void>;
+  register: (
+    inputs: RegisterRequest,
+    setErr: React.Dispatch<React.SetStateAction<string>>,
+    event: React.FormEvent<HTMLFormElement>,
+  ) => Promise<void>;
+  loading: boolean;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(
+    localStorage.getItem('user')
+      ? JSON.parse(localStorage.getItem('user')!)
+      : null,
+  );
   const [token, setToken] = useState<string | null>(
     localStorage.getItem('accessToken'),
   );
@@ -38,73 +64,144 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [connId, setConnId] = useState<string | null>(
     localStorage.getItem('connId'),
   );
-  const navigate = useNavigate();
+  const wsRef = useRef<WebSocket | null>(null);
 
-  const login = async (email: string, password: string) => {
+  const register = async (
+    inputs: RegisterRequest,
+    setErr: React.Dispatch<React.SetStateAction<string>>,
+    e: React.FormEvent<HTMLFormElement>,
+  ) => {
+    e.preventDefault();
+    setLoading(true);
     try {
-      const response = await api.post('/accounts/login', { email, password });
-      const {
-        accessToken,
-        refreshToken: newRefreshToken,
-        user: userData,
-      } = response.data;
-      setToken(accessToken);
-      setRefreshToken(newRefreshToken);
-      setUser(userData);
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', newRefreshToken);
-      await setupWebSocket(accessToken);
+      if (
+        !inputs.fullname.trim() ||
+        !inputs.email.trim() ||
+        !inputs.password.trim()
+      ) {
+        setErr('Please fill up all fields!');
+        return;
+      }
+
+      const res = await api.post<ApiResponse<TokenResponse>>(
+        '/accounts/register',
+        inputs,
+      );
+      const { data } = res.data;
+
+      const user: User = {
+        id: data.id,
+        email: data.email,
+        fullname: data.fullname,
+        avatarURL: data.avatar_url,
+      };
+
+      setToken(data.access_token);
+      setRefreshToken(data.refresh_token);
+      setUser(user);
+
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('accessToken', data.access_token);
+      localStorage.setItem('refreshToken', data.refresh_token);
+
+      await setupWebSocket(data.access_token);
       navigate('/');
-    } catch (err) {
-      console.error('Login failed', err);
-      throw err;
+    } catch (err: any) {
+      setErr(err.response?.data?.error || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = async (
+    inputs: LoginRequest,
+    setErr: React.Dispatch<React.SetStateAction<string>>,
+    e: React.FormEvent<HTMLFormElement>,
+  ) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await api.post<ApiResponse<TokenResponse>>(
+        '/accounts/login',
+        inputs,
+      );
+      const { data } = res.data;
+
+      const user: User = {
+        id: data.id,
+        email: data.email,
+        fullname: data.fullname,
+        avatarURL: data.avatar_url,
+      };
+
+      setToken(data.access_token);
+      setRefreshToken(data.refresh_token);
+      setUser(user);
+
+      localStorage.setItem('accessToken', data.access_token);
+      localStorage.setItem('refreshToken', data.refresh_token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      await setupWebSocket(data.access_token);
+      navigate('/');
+    } catch (err: any) {
+      setErr(err.response?.data?.error || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
-    if (!token || !refreshToken || !connId) return;
     try {
-      await api.post(
-        '/accounts/logout',
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'X-Authorization': refreshToken,
-            connID: connId,
+      if (token && refreshToken && connId) {
+        await api.post(
+          '/accounts/logout',
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'X-Authorization': refreshToken,
+              connID: connId,
+            },
           },
-        },
-      );
+        );
+      }
     } catch (err) {
-      console.error('Logout failed', err);
+      console.error('Logout failed:', err);
     } finally {
       setUser(null);
       setToken(null);
       setRefreshToken(null);
       setConnId(null);
+
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('connId');
+      localStorage.removeItem('user');
+
       disconnectWebSocket();
-      navigate('/login');
+      navigate('/');
     }
   };
 
   const refreshAccessToken = async () => {
     if (!refreshToken) throw new Error('No refresh token available');
     try {
-      const response = await api.post(
+      const res = await api.post<ApiResponse<RefreshTokenResponse>>(
         '/accounts/refresh-token',
         {},
-        {
-          headers: { 'X-Authorization': refreshToken },
-        },
+        { headers: { 'X-Authorization': refreshToken } },
       );
-      const { accessToken } = response.data;
-      setToken(accessToken);
-      localStorage.setItem('accessToken', accessToken);
-      return accessToken;
+      const { access_token, refresh_token } = res.data.data;
+
+      setToken(access_token);
+      setRefreshToken(refresh_token);
+      localStorage.setItem('accessToken', access_token);
+      localStorage.setItem('refreshToken', refresh_token);
+
+      await setupWebSocket(access_token); // Reconnect WebSocket với token mới
     } catch (err) {
+      console.error('Token refresh failed:', err);
       logout();
       throw err;
     }
@@ -112,43 +209,52 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const setupWebSocket = async (accessToken: string) => {
     try {
-      const ws = await connectWebSocket(accessToken);
-      ws.on('connect', () => {
-        const connId = ws.id; // Assume socket.io-client provides an ID
-        setConnId(connId);
-        localStorage.setItem('connId', connId);
-        startHeartbeat(ws);
-      });
+      const ws = await connectWebSocket(
+        accessToken,
+        refreshAccessToken,
+        (connId) => setConnId(connId), // Callback để set connId vào state
+      );
+      wsRef.current = ws;
+      startHeartbeat(ws); // Bắt đầu heartbeat ngay
+      console.log('WebSocket setup complete');
     } catch (err) {
-      console.error('WebSocket setup failed', err);
+      console.error('WebSocket setup failed:', err);
     }
-  };
-
-  const value = {
-    user,
-    token,
-    refreshToken,
-    connId,
-    login,
-    logout,
-    refreshAccessToken,
   };
 
   useEffect(() => {
-    if (token) {
-      const checkToken = async () => {
-        try {
-          await api.get('/accounts/me', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-        } catch (err) {
-          await refreshAccessToken();
-        }
-      };
-      checkToken();
-      setupWebSocket(token);
+    if (!token) {
+      disconnectWebSocket();
+      setConnId(null);
+      return;
     }
+
+    console.log('Setting up WebSocket with token:', token);
+    setupWebSocket(token);
+
+    // Cleanup chỉ khi component unmount hoặc token thay đổi
+    return () => {
+      // Chỉ đóng khi thực sự cần, để debug thì comment dòng dưới
+      // disconnectWebSocket();
+      console.log('Cleanup WebSocket for token:', token);
+    };
   }, [token]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        refreshToken,
+        connId,
+        login,
+        logout,
+        refreshAccessToken,
+        register,
+        loading,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

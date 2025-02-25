@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
+import { VideoShareRequest } from '../../types/video';
 
 const VideoShareForm: React.FC = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -9,24 +10,28 @@ const VideoShareForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     try {
       const videoId = extractVideoId(youtubeUrl);
+      if (!videoId) throw new Error('Invalid YouTube URL');
+
       const youtubeData = await fetchYouTubeMetadata(videoId);
-      await api.post(
+
+      await api.post<any, any, VideoShareRequest>(
         '/videos',
         {
-          youtubeUrl,
+          video_url: youtubeUrl,
           title: youtubeData.title,
           description: youtubeData.description,
+          downvote: youtubeData.downvote,
+          upvote: youtubeData.upvote,
+          thumbnail: youtubeData.thumbnail,
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       setYoutubeUrl('');
-      setError('');
-    } catch (err) {
-      setError('Failed to share video');
+    } catch (err: any) {
+      setError(err.message || 'Failed to share video');
     }
   };
 
@@ -36,18 +41,11 @@ const VideoShareForm: React.FC = () => {
         Share a Funny Movie
       </h2>
       <form onSubmit={handleSubmit} className='space-y-4'>
-        <div>
-          <label className='block text-sm font-medium text-gray-700'>
-            YouTube URL
-          </label>
-          <input
-            type='url'
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
-            required
-          />
-        </div>
+        <InputField
+          label='YouTube URL'
+          value={youtubeUrl}
+          onChange={(e) => setYoutubeUrl(e.target.value)}
+        />
         {error && <p className='text-red-500'>{error}</p>}
         <button
           type='submit'
@@ -60,22 +58,58 @@ const VideoShareForm: React.FC = () => {
   );
 };
 
-// Helper functions
-const extractVideoId = (url: string): string => {
-  const match = url.match(/[?&]v=([^&]+)/);
-  return match ? match[1] : '';
+const InputField: React.FC<{
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}> = ({ label, value, onChange }) => (
+  <div>
+    <label className='block text-sm font-medium text-gray-700'>{label}</label>
+    <input
+      type='url'
+      value={value}
+      onChange={onChange}
+      className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 
+                 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-3 text-lg'
+      required
+    />
+  </div>
+);
+
+const extractVideoId = (url: string): string | null => {
+  const match = url.match(/[?&]v=([^&]+)/) || url.match(/youtu\.be\/(.+)$/);
+  return match ? match[1] : null;
 };
 
-const fetchYouTubeMetadata = async (videoId: string) => {
-  // Mock implementation (replace with actual YouTube API call)
-  const response = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=YOUR_YOUTUBE_API_KEY`,
-  );
-  const data = await response.json();
-  return {
-    title: data.items[0].snippet.title,
-    description: data.items[0].snippet.description,
-  };
+const fetchYouTubeMetadata = async (
+  videoId: string,
+): Promise<{
+  title: string;
+  description: string;
+  upvote: number;
+  downvote: number;
+  thumbnail: string;
+}> => {
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${
+        import.meta.env.VITE_API_KEY
+      }`,
+    );
+    const data = await response.json();
+    console.log(data);
+    if (!data.items?.length) throw new Error('Video not found');
+    return {
+      title: data.items[0].snippet.title,
+      description: data.items[0].snippet.description,
+      upvote: 0,
+      downvote: 0,
+      thumbnail: data.items[0].snippet.thumbnails.default.url,
+    };
+  } catch (error) {
+    console.log(error);
+    throw new Error('Failed to fetch YouTube metadata');
+  }
 };
 
 export default VideoShareForm;

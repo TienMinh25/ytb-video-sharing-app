@@ -161,3 +161,20 @@ func (h *AccountHandler) RefreshToken(ctx *gin.Context) {
 
 	utils.SuccessResponse(ctx, http.StatusOK, res)
 }
+
+// CheckToken godoc
+//
+//	@Summary		check access token
+//	@Description	check token every user access web page
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//
+//	@Security		BearerAuth
+//
+//	@Success		200	{object}	dto.CheckTokenResponseDocs
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Router			/accounts/check-token [get]
+func (h *AccountHandler) CheckToken(ctx *gin.Context) {
+	utils.SuccessResponse(ctx, http.StatusOK, &dto.CheckTokenResponse{})
+}

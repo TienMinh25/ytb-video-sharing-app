@@ -13,8 +13,7 @@ interface VideoResponse {
   upvote: number;
   downvote: number;
   video_url: string;
-  account_id: number;
-  account_email: string;
+  shared_by: string;
 }
 
 const Home: React.FC = () => {
@@ -30,7 +29,7 @@ const Home: React.FC = () => {
     title: video.title,
     description: video.description,
     youtubeUrl: video.video_url,
-    sharedBy: video.account_email,
+    sharedBy: video.shared_by,
     upvote: video.upvote,
     downvote: video.downvote,
   });

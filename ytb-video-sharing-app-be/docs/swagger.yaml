@@ -1,15 +1,13 @@
 basePath: /api/v1
 definitions:
-  dto.AccountResponse:
+  dto.CheckTokenResponse:
+    type: object
+  dto.CheckTokenResponseDocs:
     properties:
-      avatar_url:
-        type: string
-      email:
-        type: string
-      fullname:
-        type: string
-      id:
-        type: integer
+      data:
+        $ref: '#/definitions/dto.CheckTokenResponse'
+      metadata:
+        $ref: '#/definitions/dto.Metadata'
     type: object
   dto.CreateAccountRequest:
     properties:
@@ -78,8 +76,14 @@ definitions:
     properties:
       access_token:
         type: string
-      info:
-        $ref: '#/definitions/dto.AccountResponse'
+      avatar_url:
+        type: string
+      email:
+        type: string
+      fullname:
+        type: string
+      id:
+        type: integer
       refresh_token:
         type: string
     type: object
@@ -219,6 +223,27 @@ info:
   title: YouTube Video Sharing API
   version: "1.0"
 paths:
+  /accounts/check-token:
+    get:
+      consumes:
+      - application/json
+      description: check token every user access web page
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CheckTokenResponseDocs'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: check access token
+      tags:
+      - accounts
   /accounts/login:
     post:
       consumes:

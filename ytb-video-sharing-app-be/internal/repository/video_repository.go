@@ -65,7 +65,11 @@ func (v *videoRepository) GetListVideos(ctx context.Context, page, limit int) ([
 		return nil, 0, err
 	}
 
-	query := `SELECT * FROM videos WHERE id > ? ORDER BY id DESC LIMIT ?`
+	query := `SELECT v.id, v.title, v.description, v.upvote, v.downvote, v.thumbnail, v.video_url, v.account_id, a.fullname
+	FROM videos v
+	JOIN accounts a ON v.account_id = a.id
+	WHERE v.id > ? ORDER BY v.id DESC LIMIT ?`
+
 	rows, err := v.db.Query(ctx, query, (page-1)*limit, limit)
 	if err != nil {
 		return nil, 0, err
@@ -75,7 +79,7 @@ func (v *videoRepository) GetListVideos(ctx context.Context, page, limit int) ([
 	var videos []*entities.Video
 	for rows.Next() {
 		video := &entities.Video{}
-		if err := rows.Scan(&video.ID, &video.Title, &video.Description, &video.UpVote, &video.DownVote, &video.Thumbnail, &video.VideoUrl, &video.AccountID); err != nil {
+		if err := rows.Scan(&video.ID, &video.Title, &video.Description, &video.UpVote, &video.DownVote, &video.Thumbnail, &video.VideoUrl, &video.AccountID, &video.FullName); err != nil {
 			return nil, 0, err
 		}
 		videos = append(videos, video)

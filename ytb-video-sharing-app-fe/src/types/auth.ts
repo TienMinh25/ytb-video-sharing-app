@@ -1,11 +1,31 @@
 export interface User {
   id: number;
   email: string;
-  name: string;
+  fullname: string;
+  avatarURL: string;
 }
 
 export interface TokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
+  access_token: string;
+  refresh_token: string;
+  avatar_url: string;
+  email: string;
+  fullname: string;
+  id: number;
+}
+
+export interface RegisterRequest {
+  fullname: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RefreshTokenResponse {
+  access_token: string;
+  refresh_token: string;
 }

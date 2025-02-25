@@ -164,7 +164,7 @@ func (a *accountService) Login(ctx context.Context, email string, password strin
 	return &dto.LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		Info: dto.AccountResponse{
+		AccountResponse: dto.AccountResponse{
 			ID:        account.ID,
 			Email:     account.Email,
 			FullName:  account.FullName,

@@ -1,10 +1,10 @@
 package dto
 
 type ShareVideoRequest struct {
-	Title       string `json:"title,required" binding:"required"`
+	Title       string `json:"title" binding:"required"`
 	Description string `json:"description" binding:"omitempty"`
-	UpVote      int64  `json:"upvote" binding:"required"`
-	DownVote    int64  `json:"downvote" binding:"required"`
+	UpVote      int64  `json:"upvote" binding:"omitempty"`
+	DownVote    int64  `json:"downvote" binding:"omitempty"`
 	Thumbnail   string `json:"thumbnail" binding:"required"`
 	VideoUrl    string `json:"video_url" binding:"required,url"`
 }
@@ -17,7 +17,6 @@ type ShareVideoResponse struct {
 	DownVote    int64  `json:"downvote"`
 	Thumbnail   string `json:"thumbnail"`
 	VideoUrl    string `json:"video_url"`
-	AccountID   int64  `json:"account_id"`
 }
 
 type VideoResponse struct {
@@ -28,5 +27,5 @@ type VideoResponse struct {
 	DownVote    int64  `json:"downvote"`
 	Thumbnail   string `json:"thumbnail"`
 	VideoUrl    string `json:"video_url"`
-	AccountID   int64  `json:"account_id"`
+	SharedBy    string `json:"shared_by"`
 }

@@ -1,10 +1,11 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
 	"ytb-video-sharing-app-be/internal/dto"
 	"ytb-video-sharing-app-be/internal/handler"
 	"ytb-video-sharing-app-be/internal/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Router struct {
@@ -34,6 +35,7 @@ func registerAccountEndpoint(accountHandler *handler.AccountHandler, group *gin.
 	accountGroup.POST("/login", middleware.ValidateRequest[dto.LoginRequest](), accountHandler.Login)
 	accountGroup.POST("/logout/:accountID", middleware.JWTAuthMiddleware(params), accountHandler.Logout)
 	accountGroup.POST("/refresh-token", middleware.JWTRefreshTokenMiddleware(params), accountHandler.RefreshToken)
+	accountGroup.GET("/check-token", middleware.JWTAuthMiddleware(params), accountHandler.CheckToken)
 }
 
 func registerVideoEndpoint(videoHandler *handler.VideoHandler, group *gin.RouterGroup, params *middleware.JwtAuthenticationMiddleware) {

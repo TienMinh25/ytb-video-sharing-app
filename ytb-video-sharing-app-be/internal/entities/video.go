@@ -9,4 +9,5 @@ type Video struct {
 	Thumbnail   string `db:"thumbnail"`
 	VideoUrl    string `db:"video_url"`
 	AccountID   int64  `db:"account_id"`
+	FullName    string
 }

@@ -2,13 +2,13 @@ package websock
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 	"ytb-video-sharing-app-be/utils"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 )
 
 type WebSocketServerInterface interface {
@@ -50,7 +50,7 @@ func NewWebSocketServer(keyManager *utils.KeyManager) (WebSocketServerInterface,
 
 func (s *webSocketServer) HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 	// check user have access token (if not, not initialize websocket)
-	accessToken := strings.Split(r.Header.Get("Authorization"), " ")[1]
+	accessToken := r.Header.Get("Sec-WebSocket-Protocol")
 
 	claims, errToken := utils.ValidateToken(accessToken, s.keyManager)
 
@@ -80,6 +80,7 @@ func (s *webSocketServer) HandleWebSocketConnection(w http.ResponseWriter, r *ht
 
 	// send conn id to user connect
 	conn.WriteJSON(map[string]string{"conn_id": connID})
+	fmt.Println("send message oke!")
 
 	heartBeatCh := make(chan struct{})
 	doneCh := make(chan struct{})

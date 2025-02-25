@@ -1,10 +1,9 @@
 import React, { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   return (
     <div className='min-h-screen bg-[var(--background)]'>

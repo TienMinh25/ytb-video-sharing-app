@@ -1,47 +1,36 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import api from '../../services/api';
+import { RegisterRequest } from '../../types/auth';
 
 const Register: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [inputs, setInputs] = useState<RegisterRequest>({
+    email: '',
+    password: '',
+    fullname: '',
+  });
   const [error, setError] = useState('');
-  const { login } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await api.post('/accounts/register', {
-        email,
-        password,
-        name,
-      });
-      await login(email, password); // Automatically log in after registration
-      setError('');
-      navigate('/');
-    } catch (err) {
-      setError('Registration failed');
-    }
-  };
+  const { register } = useAuth();
 
   return (
-    <div className='max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow'>
-      <h2 className='text-2xl font-bold mb-4 text-[var(--foreground)]'>
+    <div className='max-w-md mx-auto mt-12 p-8 bg-white rounded-2xl shadow-lg'>
+      <h2 className='text-3xl font-bold mb-6 text-center text-gray-800'>
         Register
       </h2>
-      <form onSubmit={handleSubmit} className='space-y-4'>
+      <form
+        onSubmit={(event) => register(inputs, setError, event)}
+        className='space-y-6'
+      >
         <div>
           <label className='block text-sm font-medium text-gray-700'>
             Name
           </label>
           <input
             type='text'
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
+            value={inputs.fullname}
+            onChange={(e) => {
+              setInputs((prev) => ({ ...prev, fullname: e.target.value }));
+            }}
+            className='mt-2 block w-full px-4 py-3 text-lg rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300'
             required
           />
         </div>
@@ -51,9 +40,11 @@ const Register: React.FC = () => {
           </label>
           <input
             type='email'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
+            value={inputs.email}
+            onChange={(e) => {
+              setInputs((prev) => ({ ...prev, email: e.target.value }));
+            }}
+            className='mt-2 block w-full px-4 py-3 text-lg rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300'
             required
           />
         </div>
@@ -63,26 +54,25 @@ const Register: React.FC = () => {
           </label>
           <input
             type='password'
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
+            value={inputs.password}
+            onChange={(e) => {
+              setInputs((prev) => ({ ...prev, password: e.target.value }));
+            }}
+            className='mt-2 block w-full px-4 py-3 text-lg rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300'
             required
           />
         </div>
-        {error && <p className='text-red-500'>{error}</p>}
+        {error && <p className='text-red-500 text-center'>{error}</p>}
         <button
           type='submit'
-          className='w-full bg-[var(--color-primary)] text-white p-2 rounded-md hover:bg-opacity-90 transition-colors'
+          className='w-full bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors'
         >
           Register
         </button>
       </form>
-      <p className='mt-4 text-center'>
+      <p className='mt-6 text-center text-gray-600'>
         Already have an account?{' '}
-        <a
-          href='/login'
-          className='text-[var(--color-primary)] hover:text-opacity-80'
-        >
+        <a href='/login' className='text-blue-600 hover:underline'>
           Login here
         </a>
       </p>

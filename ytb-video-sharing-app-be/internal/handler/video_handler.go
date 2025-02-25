@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,6 +10,8 @@ import (
 	"ytb-video-sharing-app-be/pkg"
 	"ytb-video-sharing-app-be/third_party"
 	"ytb-video-sharing-app-be/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 type VideoHandler struct {
@@ -51,6 +52,7 @@ func (v *VideoHandler) ShareVideo(ctx *gin.Context) {
 	res, err := v.videoService.ShareVideoYTB(ctx, &entities.Video{
 		AccountID:   claims.AccountID,
 		Description: data.Description,
+		Title:       data.Title,
 		UpVote:      data.UpVote,
 		DownVote:    data.DownVote,
 		Thumbnail:   data.Thumbnail,
