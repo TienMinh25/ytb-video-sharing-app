@@ -11,6 +11,19 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - ytb
+    
+  backend:
+    build: 
+      context: ./ytb-video-sharing-app-be
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    networks:
+      - ytb
 
   # Zookeeper 1
   # zookeeper1:

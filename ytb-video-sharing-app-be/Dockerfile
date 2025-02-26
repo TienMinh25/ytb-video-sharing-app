@@ -15,6 +15,9 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 
 COPY --from=builder /app/configs/config.dev.env ./configs/config.dev.env
+COPY --from=builder /app/db/migrations ./db/migrations
+COPY --from=builder /app/jwtRSA256.key ./jwtRSA256.key
+COPY --from=builder /app/jwtRSA256.key.pub ./jwtRSA256.key.pub
 
 # rest api port
 EXPOSE 3000
