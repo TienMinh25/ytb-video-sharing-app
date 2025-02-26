@@ -1,5 +1,7 @@
 let socket: WebSocket | null = null;
 
+const API_WS_URL = import.meta.env.VITE_API_URL || 'ws://localhost:80/ws';
+
 export const connectWebSocket = async (
   otp: string,
   connID: string,
@@ -12,9 +14,7 @@ export const connectWebSocket = async (
   }
 
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(
-      `${import.meta.env.VITE_WS_URL}?connID=${connID}&otp=${otp}`,
-    );
+    const ws = new WebSocket(`${API_WS_URL}?connID=${connID}&otp=${otp}`);
     socket = ws;
 
     ws.onopen = () => {

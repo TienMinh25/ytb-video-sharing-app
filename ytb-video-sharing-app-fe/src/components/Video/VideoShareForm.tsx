@@ -87,11 +87,11 @@ const fetchYouTubeMetadata = async (
   downvote: number;
   thumbnail: string;
 }> => {
+  const API_KEY =
+    import.meta.env.VITE_API_KEY || 'AIzaSyCLQRWXvYfA59PDFKcBag87gGKxYiK7K5A';
   try {
     const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${
-        import.meta.env.VITE_API_KEY
-      }`,
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${API_KEY}`,
     );
     const data = await response.json();
     console.log(data);

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext) ?? {};
 
   return (
     <div className='min-h-screen bg-[var(--background)]'>

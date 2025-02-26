@@ -17,7 +17,6 @@ interface VideoResponse {
 }
 
 const Home: React.FC = () => {
-  const [initialLoading, setInitialLoading] = useState(false);
   const [fetchingMore, setFetchingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [videos, setVideos] = useState<Video[]>([]);
@@ -56,8 +55,7 @@ const Home: React.FC = () => {
   };
 
   useEffect(() => {
-    setInitialLoading(true);
-    fetchVideos(1).finally(() => setInitialLoading(false));
+    fetchVideos(1);
   }, []);
 
   const fetchMoreVideos = useCallback(async () => {
