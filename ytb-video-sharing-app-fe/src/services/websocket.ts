@@ -1,6 +1,9 @@
 let socket: WebSocket | null = null;
 
-export const connectWebSocket = async (otp: string, connID: string): Promise<WebSocket> => {
+export const connectWebSocket = async (
+  otp: string,
+  connID: string,
+): Promise<WebSocket> => {
   if (socket && socket.readyState === WebSocket.OPEN) return socket;
 
   if (socket) {
@@ -9,7 +12,9 @@ export const connectWebSocket = async (otp: string, connID: string): Promise<Web
   }
 
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`${import.meta.env.VITE_WS_URL}?connID=${connID}&otp=${otp}`);
+    const ws = new WebSocket(
+      `${import.meta.env.VITE_WS_URL}?connID=${connID}&otp=${otp}`,
+    );
     socket = ws;
 
     ws.onopen = () => {
@@ -17,18 +22,8 @@ export const connectWebSocket = async (otp: string, connID: string): Promise<Web
       resolve(ws);
     };
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.conn_id) {
-          localStorage.setItem('connId', data.conn_id);
-        }
-      } catch (error) {
-        console.error('Failed to parse message:', error);
-      }
-    };
-
-    ws.onclose = async (event) => {
+    // Không gắn onmessage ở đây, để component React tự xử lý
+    ws.onclose = (event) => {
       console.log('WebSocket closed:', event.code, event.reason);
       socket = null;
     };
@@ -47,3 +42,5 @@ export const disconnectWebSocket = () => {
     console.log('WebSocket manually disconnected');
   }
 };
+
+export const getWebSocket = (): WebSocket | null => socket;

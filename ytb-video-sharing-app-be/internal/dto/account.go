@@ -42,7 +42,9 @@ type RefreshTokenResponse struct {
 type LogoutResponse struct {
 }
 
-type CheckTokenResponse struct{}
+type CheckTokenResponse struct {
+	OTP string `json:"otp"`
+}
 
 type AccountResponse struct {
 	ID        int64  `json:"id"`

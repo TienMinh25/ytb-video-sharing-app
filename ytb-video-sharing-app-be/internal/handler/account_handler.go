@@ -188,5 +188,8 @@ func (h *AccountHandler) RefreshToken(ctx *gin.Context) {
 //	@Failure		400	{object}	dto.ErrorResponse
 //	@Router			/accounts/check-token [get]
 func (h *AccountHandler) CheckToken(ctx *gin.Context) {
-	utils.SuccessResponse(ctx, http.StatusOK, &dto.CheckTokenResponse{})
+	newOTP := h.opts.NewOTP().Key
+	utils.SuccessResponse(ctx, http.StatusOK, &dto.CheckTokenResponse{
+		OTP: newOTP,
+	})
 }

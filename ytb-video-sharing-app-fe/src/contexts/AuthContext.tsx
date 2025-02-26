@@ -34,6 +34,7 @@ interface AuthContextType {
   ) => Promise<void>;
   loading: boolean;
   logout: () => Promise<void>;
+  checkTokenAndConnect: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -155,29 +156,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     const refreshToken = localStorage.getItem('refreshToken');
 
     try {
-      if (token && refreshToken) {
+      if (token && refreshToken && user?.id) {
         await api.post(
-          `/accounts/logout/${user?.id}`,
+          `/accounts/logout/${user.id}`,
           {},
           {
             headers: {
               Authorization: `Bearer ${token}`,
-              'X-Authorization': refreshToken,
+              'X-Authorization': `Bearer ${refreshToken}`,
             },
           },
         );
-
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        localStorage.removeItem('otp');
-        setUser(null);
-        setToken('');
-        setRefreshToken('');
       }
     } catch (err) {
       console.error('Logout failed:', err);
     } finally {
+      localStorage.clear();
+      setUser(null);
+      setToken(null);
+      setRefreshToken(null);
+      setConnId(null);
       disconnectWebSocket();
       navigate('/');
     }
@@ -193,36 +191,51 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) return;
+  const checkTokenAndConnect = async () => {
+    const savedToken = localStorage.getItem('accessToken');
+    if (!savedToken) {
+      console.log('No token found, skipping check');
+      return;
+    }
 
-      try {
-        // Call API kiểm tra token
-        await api.get('/accounts/check-token', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      } catch (err) {
-        console.warn('Token expired, refreshing...');
+    try {
+      const res = await api.get<ApiResponse<{ otp: string }>>(
+        '/accounts/check-token',
+        {
+          headers: { Authorization: `Bearer ${savedToken}` },
+        },
+      );
+      const otp = res.data.data.otp;
+      const savedConnId = localStorage.getItem('connId') || uuidv4();
 
-        try {
-          // Gọi API refresh token
-          const res = await api.post('/accounts/refresh-token', {
-            refreshToken,
-          });
-
-          const { access_token } = res.data.data;
-          setToken(access_token);
-          localStorage.setItem('accessToken', access_token);
-        } catch (err) {
-          console.error('Refresh token failed, logging out...');
-          await logout();
-        }
+      if (!localStorage.getItem('connId')) {
+        localStorage.setItem('connId', savedConnId);
       }
+      setConnId(savedConnId);
+
+      await setupWebSocket(otp, savedConnId);
+      console.log('Token valid, WebSocket connected with OTP:', otp);
+    } catch (err) {
+      console.warn('Check token failed:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (localStorage.getItem('accessToken')) {
+      setToken(localStorage.getItem('accessToken'));
+      checkTokenAndConnect();
+    }
+
+    const handleTokenRefreshed = () => {
+      setToken(localStorage.getItem('accessToken'));
+      checkTokenAndConnect();
     };
 
-    verifyToken();
-  }, [token]);
+    window.addEventListener('tokenRefreshed', handleTokenRefreshed);
+    return () => {
+      window.removeEventListener('tokenRefreshed', handleTokenRefreshed);
+    };
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -235,6 +248,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         register,
         loading,
         logout: logout,
+        checkTokenAndConnect,
       }}
     >
       {children}

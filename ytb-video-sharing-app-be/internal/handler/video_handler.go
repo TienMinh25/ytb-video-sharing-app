@@ -92,27 +92,27 @@ func (v *VideoHandler) ShareVideo(ctx *gin.Context) {
 	// }()
 
 	// send through websocket
-	go func() {
-		if connID != "" {
-			newEvent := websock.EventNotificationMessage{
-				Title:     data.Title,
-				SharedBy:  claims.Email,
-				Thumbnail: data.Thumbnail,
-			}
-
-			payload, err := json.Marshal(newEvent)
-
-			if err != nil {
-				log.Println("error when marshaling json: ", err)
-				return
-			}
-
-			v.wsManager.SendBroadCast(websock.Event{
-				Type:    "new_video",
-				Payload: payload,
-			}, connID)
+	// go func() {
+	if connID != "" {
+		newEvent := websock.EventNotificationMessage{
+			Title:     data.Title,
+			SharedBy:  claims.Email,
+			Thumbnail: data.Thumbnail,
 		}
-	}()
+
+		payload, err := json.Marshal(newEvent)
+
+		if err != nil {
+			log.Println("error when marshaling json: ", err)
+			return
+		}
+
+		v.wsManager.SendBroadCast(websock.Event{
+			Type:    "new_video",
+			Payload: payload,
+		}, connID)
+	}
+	// }()
 
 	utils.SuccessResponse(ctx, http.StatusCreated, res)
 }

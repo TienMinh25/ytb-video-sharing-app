@@ -19,21 +19,26 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    const originalRequest = error.config;
+
+    // Nếu request là refresh-token và bị 401, không xử lý lại để tránh vòng lặp
+    if (
+      error.response?.status === 401 &&
+      originalRequest.url.includes('/accounts/refresh-token') &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
       try {
         console.warn('Access token expired, refreshing...');
-        await refreshAccessToken();
+        const newAccessToken = await refreshAccessToken();
 
-        console.log(
-          localStorage.getItem('refreshToken') == '' ? 'dung roi' : 'sai roi',
-        );
-        error.config.headers.Authorization = `Bearer ${localStorage.getItem(
-          'accessToken',
-        )}`;
-        return api(error.config); // Gửi lại request sau khi refresh thành công
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return api(originalRequest);
       } catch (refreshError) {
         console.error('Failed to refresh token, logging out...', refreshError);
-        // logout();
+        localStorage.clear();
+        window.location.href = '/';
+        return Promise.reject(refreshError);
       }
     }
     return Promise.reject(error);

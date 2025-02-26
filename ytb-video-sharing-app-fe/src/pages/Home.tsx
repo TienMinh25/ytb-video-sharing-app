@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import NotificationPopup from '../components/Notification/NotificationPopup';
+import NotificationPopup from '../components/Notification/NotificationHandler';
 import VideoCard from '../components/Video/VideoCard';
 import api from '../services/api';
 import { ApiResponse } from '../types/response';

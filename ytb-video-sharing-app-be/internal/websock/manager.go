@@ -136,6 +136,7 @@ func (m *Manager) routeEvent(event Event, c *Client) error {
 func (m *Manager) SendBroadCast(event Event, connIDExclusive string) {
 	for connID, client := range m.clients {
 		if connID != connIDExclusive {
+			log.Printf("Sending to client %s", connID)
 			client.egress <- event
 		}
 	}
