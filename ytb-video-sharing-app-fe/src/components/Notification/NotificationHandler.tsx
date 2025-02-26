@@ -1,47 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { getWebSocket } from '../../services/websocket';
-
-interface Notification {
-  title: string;
-  shared_by: string;
-  thumbnail: string;
-}
+import React from 'react';
+import { useNotification } from '../../hooks/useNotification';
 
 const NotificationHandler: React.FC = () => {
-  const [notification, setNotification] = useState<Notification | null>(null);
-
-  useEffect(() => {
-    const ws = getWebSocket();
-
-    if (ws) {
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log('Received WebSocket message:', data);
-
-          if (data.type === 'new_video') {
-            const { title, shared_by, thumbnail } = data.payload;
-            setNotification({ title, shared_by, thumbnail });
-
-            const timer = setTimeout(() => {
-              setNotification(null);
-            }, 5000);
-
-            
-            return () => clearTimeout(timer);
-          }
-        } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
-        }
-      };
-    }
-
-    return () => {
-      if (ws) {
-        ws.onmessage = null; 
-      }
-    };
-  }, []);
+  const { notification } = useNotification();
 
   if (!notification) return null;
 
@@ -91,21 +52,6 @@ const NotificationHandler: React.FC = () => {
           }}
         />
       )}
-      <button
-        onClick={() => setNotification(null)}
-        style={{
-          padding: '8px 12px',
-          backgroundColor: '#007bff',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontSize: '14px',
-          transition: 'background-color 0.3s',
-        }}
-      >
-        Close
-      </button>
     </div>
   );
 };

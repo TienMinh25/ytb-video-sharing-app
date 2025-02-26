@@ -4,6 +4,8 @@ import VideoCard from '../components/Video/VideoCard';
 import api from '../services/api';
 import { ApiResponse } from '../types/response';
 import { Video } from '../types/video';
+import { useNotification } from '../hooks/useNotification';
+import { getWebSocket } from '../services/websocket';
 
 interface VideoResponse {
   id: number;
@@ -21,6 +23,7 @@ const Home: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [videos, setVideos] = useState<Video[]>([]);
   const [page, setPage] = useState(1);
+  const { showNotification } = useNotification();
   const limit = 6;
 
   const mapVideoResponse = (video: VideoResponse): Video => ({
@@ -57,6 +60,26 @@ const Home: React.FC = () => {
   useEffect(() => {
     fetchVideos(1);
   }, []);
+
+  useEffect(() => {
+    const ws = getWebSocket();
+
+    if (ws) {
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('Received WebSocket message:', data);
+
+          if (data.type === 'new_video') {
+            const { title, shared_by, thumbnail } = data.payload;
+            showNotification({ title, shared_by, thumbnail });
+          }
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error);
+        }
+      };
+    }
+  }, [showNotification]);
 
   const fetchMoreVideos = useCallback(async () => {
     if (fetchingMore || !hasMore) return;

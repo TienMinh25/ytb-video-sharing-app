@@ -25,22 +25,17 @@ services:
     networks:
       - ytb
 
-  frontend:
-    build:
-      context: ./ytb-video-sharing-app-fe
-      dockerfile: Dockerfile
-    restart: always
-    depends_on:
-      - mysql
-      - backend
-    environment:
-      - VITE_WS_URL=ws://localhost:80/ws
-      - VITE_API_URL=http://localhost:80/api/v1
-      - VITE_API_KEY=AIzaSyCLQRWXvYfA59PDFKcBag87gGKxYiK7K5A
-    ports:
-      - '80:80'
-    networks:
-      - ytb
+  # frontend:
+  #   build:
+  #     context: ./ytb-video-sharing-app-fe
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   depends_on:
+  #     - backend
+  #   ports:
+  #     - '80:80'
+  #   networks:
+  #     - ytb
   # Zookeeper 1
   # zookeeper1:
   #   image: confluentinc/cp-zookeeper:latest

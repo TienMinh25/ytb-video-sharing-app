@@ -10,7 +10,7 @@ import (
 
 var (
 	// pongWait is how long we will await a pong response from client
-	pongWait = 10 * time.Second
+	pongWait = 15 * time.Minute
 	// pingInterval has to be less than pongWait, We cant multiply by 0.9 to get 90% of time
 	// Because that can make decimals, so instead *9 / 10 to get 90%
 	// The reason why it has to be less than PingRequency is becuase otherwise it will send a new Ping before getting response
@@ -124,7 +124,7 @@ func (c *Client) WriteMessages() {
 		case <-ticker.C:
 			log.Println("ping")
 			if err := c.connection.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				log.Println("writemsg: ", err)
+				log.Printf("writemsg error: %v\n", err)
 				return
 			}
 		}

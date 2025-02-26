@@ -2,3 +2,8 @@
 
 ytb-video-sharing-app-be/configs/config.dev.env
 ytb-video-sharing-app-fe/.env
+ytb-video-sharing-app-fe/ssl
+
+ytb-video-sharing-be/server.crt
+ytb-video-sharing-be/server.key
+ytb-video-sharing-be/server.pem

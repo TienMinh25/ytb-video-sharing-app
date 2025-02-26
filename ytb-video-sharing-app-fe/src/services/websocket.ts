@@ -1,6 +1,6 @@
 let socket: WebSocket | null = null;
 
-const API_WS_URL = import.meta.env.VITE_API_URL || 'ws://localhost:3001/ws';
+const API_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws';
 
 export const connectWebSocket = async (
   otp: string,
