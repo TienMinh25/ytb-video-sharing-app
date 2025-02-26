@@ -14,7 +14,7 @@ WORKDIR /root/
 
 COPY --from=builder /app/main .
 
-COPY --from=builder /app/configs ./configs
+COPY --from=builder /app/configs/config.dev.env ./configs/config.dev.env
 
 # rest api port
 EXPOSE 3000
