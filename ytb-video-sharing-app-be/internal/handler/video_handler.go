@@ -9,7 +9,6 @@ import (
 	"ytb-video-sharing-app-be/internal/entities"
 	"ytb-video-sharing-app-be/internal/service"
 	"ytb-video-sharing-app-be/internal/websock"
-	"ytb-video-sharing-app-be/pkg"
 	"ytb-video-sharing-app-be/utils"
 
 	"github.com/gin-gonic/gin"
@@ -17,14 +16,14 @@ import (
 
 type VideoHandler struct {
 	videoService  service.VideoService
-	messageBroker pkg.Queue
+	// messageBroker pkg.Queue
 	wsManager     *websock.Manager
 }
 
-func NewVideoHandler(videoService service.VideoService, messageBroker pkg.Queue, wsManager *websock.Manager) *VideoHandler {
+func NewVideoHandler(videoService service.VideoService, wsManager *websock.Manager) *VideoHandler {
 	return &VideoHandler{
 		videoService:  videoService,
-		messageBroker: messageBroker,
+		// messageBroker: messageBroker,
 		wsManager:     wsManager,
 	}
 }

@@ -16,8 +16,6 @@ import (
 	"ytb-video-sharing-app-be/internal/routes"
 	"ytb-video-sharing-app-be/internal/service"
 	"ytb-video-sharing-app-be/internal/websock"
-	"ytb-video-sharing-app-be/pkg"
-	"ytb-video-sharing-app-be/third_party"
 	"ytb-video-sharing-app-be/utils"
 
 	"github.com/gin-contrib/cors"
@@ -95,7 +93,7 @@ func NewRetention() websock.RetentionMap {
 	return websock.NewRetentionMap(context.Background(), 1*time.Minute)
 }
 
-func StartWebSocketServer(lifecycle fx.Lifecycle, wsMux *http.ServeMux, q pkg.Queue) {
+func StartWebSocketServer(lifecycle fx.Lifecycle, wsMux *http.ServeMux) {
 	lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			address := os.Getenv("WEBSOCKET_SERVER_ADDRESS")
@@ -111,11 +109,11 @@ func StartWebSocketServer(lifecycle fx.Lifecycle, wsMux *http.ServeMux, q pkg.Qu
 		OnStop: func(ctx context.Context) error {
 			fmt.Println("Shutting down WebSocket server...")
 
-			if err := q.Close(); err != nil {
-				log.Println("Error shutting down queue:", err)
-			} else {
-				log.Println("✅ Queue shutdown successfully!")
-			}
+			// if err := q.Close(); err != nil {
+			// 	log.Println("Error shutting down queue:", err)
+			// } else {
+			// 	log.Println("✅ Queue shutdown successfully!")
+			// }
 
 			return nil
 		},
@@ -149,7 +147,7 @@ func main() {
 			middleware.NewJWTAuthenticationMiddleware,
 			websock.NewManager,
 			NewRetention,
-			third_party.NewQueue,
+			// third_party.NewQueue,
 		),
 		fx.Invoke(LoadEnv, MigrateDB, utils.LoadKeys),
 		fx.Invoke(StartServer, StartWebSocketServer),

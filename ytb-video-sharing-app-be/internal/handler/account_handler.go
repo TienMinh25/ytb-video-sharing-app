@@ -8,7 +8,6 @@ import (
 	"ytb-video-sharing-app-be/internal/entities"
 	"ytb-video-sharing-app-be/internal/service"
 	"ytb-video-sharing-app-be/internal/websock"
-	"ytb-video-sharing-app-be/pkg"
 	"ytb-video-sharing-app-be/utils"
 
 	"github.com/gin-gonic/gin"
@@ -17,15 +16,15 @@ import (
 type AccountHandler struct {
 	accountService service.AccountService
 	router         *gin.Engine
-	queue          pkg.Queue
+	// queue          pkg.Queue
 	opts           websock.RetentionMap
 }
 
-func NewAccountHandler(accountService service.AccountService, router *gin.Engine, queue pkg.Queue, opts websock.RetentionMap) *AccountHandler {
+func NewAccountHandler(accountService service.AccountService, router *gin.Engine, opts websock.RetentionMap) *AccountHandler {
 	return &AccountHandler{
 		accountService: accountService,
 		router:         router,
-		queue:          queue,
+		// queue:          queue,
 		opts:           opts,
 	}
 }
