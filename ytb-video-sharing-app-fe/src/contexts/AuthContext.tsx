@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     localStorage.getItem('refreshToken'),
   );
   const [connId, setConnId] = useState<string | null>(
-    localStorage.getItem('connId'),
+    localStorage.getItem('connID'),
   );
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -206,10 +206,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         },
       );
       const otp = res.data.data.otp;
-      const savedConnId = localStorage.getItem('connId') || uuidv4();
+      const savedConnId = localStorage.getItem('connID') || uuidv4();
 
       if (!localStorage.getItem('connId')) {
-        localStorage.setItem('connId', savedConnId);
+        localStorage.setItem('connID', savedConnId);
       }
       setConnId(savedConnId);
 

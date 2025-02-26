@@ -68,9 +68,9 @@ func (v *videoRepository) GetListVideos(ctx context.Context, page, limit int) ([
 	query := `SELECT v.id, v.title, v.description, v.upvote, v.downvote, v.thumbnail, v.video_url, v.account_id, a.fullname
 	FROM videos v
 	JOIN accounts a ON v.account_id = a.id
-	WHERE v.id > ? ORDER BY v.id DESC LIMIT ?`
+	ORDER BY v.id ASC LIMIT ? OFFSET ?`
 
-	rows, err := v.db.Query(ctx, query, (page-1)*limit, limit)
+	rows, err := v.db.Query(ctx, query, limit, (page-1)*limit)
 	if err != nil {
 		return nil, 0, err
 	}

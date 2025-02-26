@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
+import NotificationHandler from '../Notification/NotificationHandler';
 
 const VideoShareForm: React.FC = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -32,6 +33,7 @@ const VideoShareForm: React.FC = () => {
 
   return (
     <div className='max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow'>
+      <NotificationHandler />
       <h2 className='text-2xl font-bold mb-4 text-[var(--foreground)]'>
         Share a Funny Movie
       </h2>
