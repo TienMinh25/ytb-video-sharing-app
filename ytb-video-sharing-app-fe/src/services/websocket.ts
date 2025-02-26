@@ -22,7 +22,6 @@ export const connectWebSocket = async (
       resolve(ws);
     };
 
-    // Không gắn onmessage ở đây, để component React tự xử lý
     ws.onclose = (event) => {
       console.log('WebSocket closed:', event.code, event.reason);
       socket = null;

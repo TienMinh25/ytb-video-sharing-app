@@ -23,12 +23,11 @@ const NotificationHandler: React.FC = () => {
             const { title, shared_by, thumbnail } = data.payload;
             setNotification({ title, shared_by, thumbnail });
 
-            // Tự động ẩn sau 5 giây
             const timer = setTimeout(() => {
               setNotification(null);
-            }, 5000); // 5000ms = 5 giây
+            }, 5000);
 
-            // Cleanup timer nếu component unmount hoặc notification thay đổi trước khi hết 5s
+            
             return () => clearTimeout(timer);
           }
         } catch (error) {
@@ -37,13 +36,12 @@ const NotificationHandler: React.FC = () => {
       };
     }
 
-    // Cleanup khi component unmount
     return () => {
       if (ws) {
-        ws.onmessage = null; // Xóa handler để tránh memory leak
+        ws.onmessage = null; 
       }
     };
-  }, []); // Chạy một lần khi mount
+  }, []);
 
   if (!notification) return null;
 

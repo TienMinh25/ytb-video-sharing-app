@@ -502,10 +502,10 @@ docker compose down -v
 - Once registered, log in using the provided credentials.
 
 ![Login](./docs/login.png)
-![Login](./docs/register.png)
+![Register](./docs/register.png)
 
 **After Login**
-![Login](./docs/after-login.png)
+![After Login](./docs/after-login.png)
 
 **2. Sharing a Video**
 
@@ -517,7 +517,7 @@ docker compose down -v
 
 - Click **Share** to add the video to the system.
 
-![Login](./docs/share-section.png)
+![Share section](./docs/share-section.png)
 
 **3. Viewing Shared Videos**
 
@@ -527,7 +527,7 @@ All users can browse the list of shared videos.
 
 - Each video includes the title, description, upvote/downvote buttons, and the user who shared it.
 
-![Login](./docs/homepage.png)
+![Homepage](./docs/homepage.png)
 
 **4. Real-Time Notifications**
 
@@ -536,6 +536,10 @@ Users receive real-time notifications whenever a new video is shared.
 - Logged-in users will see a pop-up notification when a new video is added.
 
 - Notifications appear instantly through WebSocket integration.
+
+![Two account logins](./docs/two_accounts_login.png)
+
+![User share new video, other logged in user received notification](./docs/share_video_and_pop_up_notif.png)
 
 ## Troubleshooting
 
