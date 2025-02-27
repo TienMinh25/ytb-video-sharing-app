@@ -50,8 +50,8 @@ The purpose of this application is to create an interactive platform where users
   - **Per day**: 500MB \* 1,000 videos ≈ 488GB
   - **Per year**: 488GB \* 365 ≈ 174TB
 - **Metadata Storage**:
-  - **Video metadata**: ~49MB/day → ~17.5GB/year
-  - **User metadata**: ~9.7MB for 10K users
+  - **Video metadata**: 0.5KB 1 video ~2.44MB/day → ~890.6MB/year
+  - **User metadata**: 0.5KB 1 user -> ~9.7MB for 10K users
 
 ---
 
