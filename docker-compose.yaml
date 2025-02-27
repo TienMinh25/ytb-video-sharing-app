@@ -25,17 +25,18 @@ services:
     networks:
       - ytb
 
-  # frontend:
-  #   build:
-  #     context: ./ytb-video-sharing-app-fe
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   depends_on:
-  #     - backend
-  #   ports:
-  #     - '80:80'
-  #   networks:
-  #     - ytb
+  frontend:
+    build:
+      context: ./ytb-video-sharing-app-fe
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - backend
+      - mysql
+    ports:
+      - '5173:5173'
+    networks:
+      - ytb
   # Zookeeper 1
   # zookeeper1:
   #   image: confluentinc/cp-zookeeper:latest

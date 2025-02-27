@@ -1,27 +1,14 @@
-FROM node:18 AS build
+FROM node:18
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 RUN npm install
+RUN npm install -g serve
 
 COPY . .
 
-ARG VITE_API_URL
-ARG VITE_WS_URL
-ARG VITE_API_KEY
-ENV VITE_API_URL=${VITE_API_URL}
-ENV VITE_WS_URL=${VITE_WS_URL}
-ENV VITE_API_KEY=${VITE_API_KEY}
+RUN npm run build
 
-RUN npm run dev -- --host
-
-FROM nginx:latest
-
-COPY --from=build /app/dist /usr/share/nginx/html
-
-COPY --from=build /app/nginx.conf /etc/nginx/nginx.conf
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 5173
+CMD [ "serve", "-s", "dist", "-l", "5173" ]

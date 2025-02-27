@@ -1,4 +1,5 @@
-import { createContext, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
+import { getWebSocket } from '../services/websocket';
 
 interface Notification {
   title: string;
@@ -6,9 +7,13 @@ interface Notification {
   thumbnail: string;
 }
 
+interface EventMessage {
+  type: string;
+  payload: Notification;
+}
+
 interface NotificationContextProps {
   notification: Notification | null;
-  showNotification: (data: Notification) => void;
 }
 
 export const NotificationContext = createContext<
@@ -20,13 +25,38 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [notification, setNotification] = useState<Notification | null>(null);
 
-  const showNotification = (data: Notification) => {
-    setNotification(data);
-    setTimeout(() => setNotification(null), 5000); // Ẩn sau 5s
-  };
+  useEffect(() => {
+    const ws = getWebSocket();
+
+    if (ws) {
+      ws.onmessage = (event) => {
+        try {
+          const data: EventMessage = JSON.parse(event.data);
+          console.log('WebSocket message received:', data);
+
+          switch (data.type) {
+            case 'new_video': {
+              setNotification({
+                title: data.payload.title,
+                shared_by: data.payload.shared_by,
+                thumbnail: data.payload.thumbnail,
+              });
+
+              setTimeout(() => {
+                setNotification(null);
+              }, 6000);
+              break;
+            }
+          }
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error);
+        }
+      };
+    }
+  }, [notification, setNotification]);
 
   return (
-    <NotificationContext.Provider value={{ notification, showNotification }}>
+    <NotificationContext.Provider value={{ notification }}>
       {children}
     </NotificationContext.Provider>
   );

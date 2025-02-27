@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import NotificationPopup from '../components/Notification/NotificationHandler';
+import '../components/Notification/NotificationHandler';
 import VideoCard from '../components/Video/VideoCard';
+import { useNotification } from '../hooks/useNotification';
 import api from '../services/api';
 import { ApiResponse } from '../types/response';
 import { Video } from '../types/video';
-import { useNotification } from '../hooks/useNotification';
-import { getWebSocket } from '../services/websocket';
+import NotificationHandler from '../components/Notification/NotificationHandler';
 
 interface VideoResponse {
   id: number;
@@ -23,7 +23,7 @@ const Home: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [videos, setVideos] = useState<Video[]>([]);
   const [page, setPage] = useState(1);
-  const { showNotification } = useNotification();
+  const { notification } = useNotification();
   const limit = 6;
 
   const mapVideoResponse = (video: VideoResponse): Video => ({
@@ -61,26 +61,6 @@ const Home: React.FC = () => {
     fetchVideos(1);
   }, []);
 
-  useEffect(() => {
-    const ws = getWebSocket();
-
-    if (ws) {
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log('Received WebSocket message:', data);
-
-          if (data.type === 'new_video') {
-            const { title, shared_by, thumbnail } = data.payload;
-            showNotification({ title, shared_by, thumbnail });
-          }
-        } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
-        }
-      };
-    }
-  }, [showNotification]);
-
   const fetchMoreVideos = useCallback(async () => {
     if (fetchingMore || !hasMore) return;
 
@@ -106,7 +86,7 @@ const Home: React.FC = () => {
 
   return (
     <div className='container mx-auto p-4'>
-      <NotificationPopup />
+      {notification !== null ? <NotificationHandler /> : <></>}
       <div className='grid gap-6'>
         <div>
           <h3 className='text-2xl font-semibold mb-4 text-[var(--foreground)]'>
