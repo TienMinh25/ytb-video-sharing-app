@@ -59,19 +59,7 @@ The purpose of this application is to create an interactive platform where users
 
 ---
 
-```
-FE -> Load Balancer ----> BE 1  -------   <share new video, push event to Kafka>
- |      | |         |---> BE 2  ------| -----------------------------------------> Kafka ---------------------------
- -------| |         |---> BE 3  ------|                                                                            |
- |        |                           |                                                                            |
- |        |        -------------------|                                                                            |
- |        |        |                   MySQL (Account, Video metadata, Account password) (~=17.5GB + 9.7MB)        |
- |        |        |                                                                                               |
- |--------|----->Blob Storage (video) (1 year) ~ 174TB                                                             |
-          |                                                                                                        |
-          ---------------------------------------------------------------------------------------------------------|
-          <Background job consumes messages from Kafka, checking online users via WebSockets>
-```
+![Architecture](./docs/architecture.png)
 
 ---
 
